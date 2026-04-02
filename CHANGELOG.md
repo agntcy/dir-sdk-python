@@ -1,8 +1,11 @@
 # Changelog
 
-## 0.0.1 (2025-02-04)
+[agntcy/dir]: https://github.com/agntcy/dir
+[agntcy/dir-sdk-python]: https://github.com/agntcy/dir-sdk-python
 
-### Feat
+## 1.1.0 (2026-04-02)
 
-- Add commitizen
-- Initial Commit to create the scaffolding to template repo and relevant github actions
+### Added
+
+The Directory Python SDK has been migrated from the [agntcy/dir][agntcy/dir]
+repository to the [agntcy/dir-sdk-python][agntcy/dir-sdk-python] repository.

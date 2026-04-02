@@ -1,13 +1,14 @@
 ---
 name: lint
 
-on:
-  push:
-    # Run superlinter on pushes to default branch
-    branches:
-      - main
-  # Run superlinter on pull request events
-  pull_request:
+# TODO: enable linter after migration
+# on:
+#   push:
+#     # Run superlinter on pushes to default branch
+#     branches:
+#       - main
+#   # Run superlinter on pull request events
+#   pull_request:
 
 # Declare default permissions as read-only
 permissions: read-all

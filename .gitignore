@@ -1,0 +1,71 @@
+# IDEs
+.vscode/
+.idea/
+.continue/
+
+# Secrets
+.env
+.envrc
+
+# Builds
+.bin/
+
+# Python
+dist/
+__pycache__/
+*.egg-info
+*.pyc
+*.pyo
+*.pyd
+.venv/
+
+# JS
+node_modules
+
+# Helm
+install/charts/dir/charts/
+install/charts/dir/apiserver/charts/
+install/charts/dirctl/charts/
+install/charts/envoy-authz/charts/
+
+# MacOS
+.DS_Store
+
+# Test output
+e2e/tmp/*
+
+# Coverage output
+.coverage/
+
+# Licensei
+.licensei.cache
+
+tmp/
+
+# AI
+.cursor/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# MCP server binary
+mcp/mcp-server
+
+# Local Build output
+build/
+mcp/debug/
+
+# Flutter GUI
+gui/.dart_tool/
+gui/.flutter-plugins
+gui/.flutter-plugins-dependencies
+gui/build/
+gui/android/
+gui/ios/
+gui/linux/
+gui/web/
+gui/windows/
+gui/macos/
+
+gui/.env
