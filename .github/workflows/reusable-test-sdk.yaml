@@ -1,0 +1,53 @@
+# Copyright AGNTCY Contributors (https://github.com/agntcy)
+# SPDX-License-Identifier: Apache-2.0
+
+name: Test SDK
+
+on:
+  workflow_call:
+    inputs:
+      image_repo:
+        required: true
+        type: string
+        description: "Image repo to use."
+      image_tag:
+        required: true
+        type: string
+        description: "Image tag to use."
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          registry: ghcr.io
+          username: notused
+          password: ${{ secrets.GITHUB_TOKEN  }}
+
+      - name: Install Task
+        uses: go-task/setup-task@3be4020d41929789a01026e0e427a4321ce0ad44 #v2.0.0
+
+      - name: Add dependencies for SDKs testing
+        env:
+          CLIENT_ID: "https://github.com/${{ github.repository }}/.github/workflows/reusable-test-sdk.yaml@${{ github.ref }}"
+        run: |
+          task sdk:deps:cicd:iodc-token-generation >> $GITHUB_ENV
+
+      - name: Test Python SDK
+        env:
+          CHART_VERSION: "0.0.0-latest"
+          IMAGE_TAG: latest
+        run: |
+          task sdk:test:python

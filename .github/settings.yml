@@ -5,13 +5,13 @@ repository:
   # See https://developer.github.com/v3/repos/#edit for all available settings.
 
   # The name of the repository. Changing this will rename the repository
-  name: repo-template
+  name: dir-sdk-python
 
   # A short description of the repository that will show up on GitHub
-  description: Agntcy Project Repo Template
+  description: Directory Python SDK
 
   # A URL with more information about the repository
-  homepage: https://www.example.com
+  homepage: https://docs.agntcy.org/dir/directory-sdk/#python-sdk
 
   # A comma-separated list of topics to set on the repository
   topics: github, probot
@@ -60,60 +60,56 @@ repository:
 
 # TODO: Enable this section once GitHub teams have been created & granted access to this repository
 # See https://developer.github.com/v3/teams/#add-or-update-team-repository for options
-# teams:
-#   # The permission to grant the team. Can be one of:
-#   # * `pull` - can pull, but not push to or administer this repository.
-#   # * `push` - can pull and push, but not administer this repository.
-#   # * `admin` - can pull, push and administer this repository.
-#   # * `maintain` - Recommended for project managers who need to manage the
-#   #   repository without access to sensitive or destructive actions.
-#   # * `triage` - Recommended for contributors who need to proactively manage
-#   #   issues and pull requests without write access.
-#   - name: <project-name-admins>
-#     permission: admin
-#   - name: <project-name-maintainers>
-#     permission: maintain
-#   - name: <project-name>
-#     permission: triage
+#  teams:
+#    # The permission to grant the team. Can be one of:
+#    # * `pull` - can pull, but not push to or administer this repository.
+#    # * `push` - can pull and push, but not administer this repository.
+#    # * `admin` - can pull, push and administer this repository.
+#    # * `maintain` - Recommended for project managers who need to manage the
+#    #   repository without access to sensitive or destructive actions.
+#    # * `triage` - Recommended for contributors who need to proactively manage
+#    #   issues and pull requests without write access.
+#    - name: dir-maintainers
+#      permission: admin
 
 # TODO: Enable this section once repository has been created & no further modifications are needed
-# branches:
-#   - name: main
-#     # https://developer.github.com/v3/repos/branches/#update-branch-protection
-#     # Branch Protection settings. Set to null to disable
-#     protection:
-#       # Required. Require at least one approving review on a pull request,
-#       # before merging. Set to null to disable.
-#       required_pull_request_reviews:
-#         # The number of approvals required. (1-6)
-#         required_approving_review_count: 1
-#         # Dismiss approved reviews automatically when a new commit is pushed.
-#         dismiss_stale_reviews: true
-#         # Blocks merge until code owners have reviewed.
-#         require_code_owner_reviews: true
-#         # Specify which users and teams can dismiss pull request reviews. Pass
-#         # an empty dismissal_restrictions object to disable. User and team
-#         # dismissal_restrictions are only available for organization-owned
-#         # repositories. Omit this parameter for personal repositories.
-#         dismissal_restrictions:
-#           users: []
-#           teams: []
-#       # Required. Require status checks to pass before merging. Set to null to disable
-#       required_status_checks:
-#         # Required. Require branches to be up to date before merging.
-#         strict: true
-#         # Required. The list of required status checks in order to merge into this branch
-#         contexts: []
-#       # Required. Enforce all configured restrictions for administrators. Set to
-#       # true to enforce required status checks for repository administrators.
-#       # Set to null to disable.
-#       enforce_admins: true
-#       # Prevent merge commits from being pushed to matching branches
-#       required_linear_history: true
-#       # Required. Restrict who can push to this branch. Team and user
-#       # restrictions are only available for organization-owned repositories. Set
-#       # to null to disable.
-#       restrictions:
-#         apps: []
-#         users: []
-#         teams: []
+#branches:
+#  - name: main
+#    # https://developer.github.com/v3/repos/branches/#update-branch-protection
+#    # Branch Protection settings. Set to null to disable
+#    protection:
+#      # Required. Require at least one approving review on a pull request,
+#      # before merging. Set to null to disable.
+#      required_pull_request_reviews:
+#        # The number of approvals required. (1-6)
+#        required_approving_review_count: 1
+#        # Dismiss approved reviews automatically when a new commit is pushed.
+#        dismiss_stale_reviews: true
+#        # Blocks merge until code owners have reviewed.
+#        require_code_owner_reviews: true
+#        # Specify which users and teams can dismiss pull request reviews. Pass
+#        # an empty dismissal_restrictions object to disable. User and team
+#        # dismissal_restrictions are only available for organization-owned
+#        # repositories. Omit this parameter for personal repositories.
+#        dismissal_restrictions:
+#          users: []
+#          teams: []
+#      # Required. Require status checks to pass before merging. Set to null to disable
+#      required_status_checks:
+#        # Required. Require branches to be up to date before merging.
+#        strict: true
+#        # Required. The list of required status checks in order to merge into this branch
+#        contexts: []
+#      # Required. Enforce all configured restrictions for administrators. Set to
+#      # true to enforce required status checks for repository administrators.
+#      # Set to null to disable.
+#      enforce_admins: true
+#      # Prevent merge commits from being pushed to matching branches
+#      required_linear_history: true
+#      # Required. Restrict who can push to this branch. Team and user
+#      # restrictions are only available for organization-owned repositories. Set
+#      # to null to disable.
+#      restrictions:
+#        apps: []
+#        users: []
+#        teams: []

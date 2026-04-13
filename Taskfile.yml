@@ -1,0 +1,114 @@
+# Copyright AGNTCY Contributors (https://github.com/agntcy)
+# SPDX-License-Identifier: Apache-2.0
+
+version: "3"
+
+includes:
+  vars:
+    taskfile: Taskfile.vars.yml
+    flatten: true
+    excludes: [default]
+
+  deps:
+    taskfile: Taskfile.deps.yml
+    dir: "{{.BIN_DIR}}"
+    flatten: true
+    excludes: [default]
+
+  test-env:
+    taskfile: Taskfile.test-env.yml
+    flatten: true
+    excludes: [default]
+
+tasks:
+  sdk:deps:cicd:iodc-token-generation:
+    desc: Get Fulcio OIDC token for CICD
+    requires:
+      vars: [CLIENT_ID]
+    cmds:
+      - |
+        OIDC_TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+           "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore" | jq -r '.value')
+
+        CLIENT_ID="{{.CLIENT_ID}}"
+        PROVIDER_URL="https://token.actions.githubusercontent.com"
+
+        echo "OIDC_PROVIDER_URL=${PROVIDER_URL}"
+        echo "CLIENT_ID=${CLIENT_ID}"
+        echo "OIDC_TOKEN=${OIDC_TOKEN}"
+
+  sdk:build:python:
+    desc: Build python client SDK package
+    dir: ./dir-sdk-python
+    deps:
+      - task: sdk:deps:python
+    cmds:
+      - "{{.UV_BIN}} build"
+
+  sdk:test-env:create:
+    desc: Create Kubernetes cluster test environment
+    cmds:
+      - task: test-env:kubernetes:local
+        vars:
+          DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: 1s
+          DIRECTORY_SERVER_OASF_API_VALIDATION_SCHEMA_URL: "https://schema.oasf.outshift.com"
+
+  sdk:test-env:delete:
+    desc: Delete Kubernetes cluster test environment
+    cmds:
+      - task: test-env:kubernetes:local:cleanup
+
+  sdk:test:python:
+    desc: Test python client SDK package
+    dir: ./dir-sdk-python
+    deps:
+      - task: sdk:deps:python
+    cmds:
+      - defer: { task: sdk:test-env:delete }
+      - task: sdk:test-env:create
+      - |
+        export DIRCTL_IMAGE_TAG="{{ .IMAGE_TAG }}"
+        export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
+
+        # Run SDK tests
+        '{{.UV_BIN}}' run pytest
+
+        # Run SDK example to verify it works
+        # cd {{ .ROOT_DIR }}/sdk/examples/example-py
+        # '{{.UV_BIN}}' sync
+        # '{{.UV_BIN}}' run python example.py
+
+  sdk:deps:python:
+    desc: Install deps for python SDK package
+    dir: ./dir-sdk-python
+    deps:
+      - task: deps:uv
+      - task: deps:cosign
+      - task: deps:dir-ctl
+    cmds:
+      - "{{.UV_BIN}} sync --all-packages"
+
+  sdk:deps:python:example:
+    desc: Install deps for Python SDK example package
+    internal: true
+    dir: ./sdk/examples/example-py
+    deps:
+      - task: deps:uv
+    cmds:
+      - "{{.UV_BIN}} sync --all-packages"
+
+  sdk:tidy:
+    desc: Install deps for SDK packages
+    cmds:
+      - task: sdk:deps:python
+      - task: sdk:deps:python:example
+
+  sdk:release:python:
+    desc: Release python client SDK package
+    dir: ./dir-sdk-python
+    env:
+      UV_PUBLISH_TOKEN: "{{ .UV_PUBLISH_TOKEN }}"
+    deps:
+      - task: deps:uv
+    cmds:
+      - "{{.UV_BIN}} publish"

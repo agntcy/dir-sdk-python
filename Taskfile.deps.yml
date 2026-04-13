@@ -1,0 +1,95 @@
+# Copyright AGNTCY Contributors (https://github.com/agntcy)
+# SPDX-License-Identifier: Apache-2.0
+
+version: "3"
+
+tasks:
+  default:
+    cmd: echo "Run the main Taskfile instead of this one."
+
+  deps:bin-dir:
+    desc: Create bin directory
+    run: once
+    cmd: mkdir -p {{.BIN_DIR}}
+    status:
+      - test -d {{.BIN_DIR}}
+
+  deps:helm:
+    desc: Ensure supported Helm version is installed
+    internal: true
+    deps:
+      - deps:bin-dir
+    preconditions:
+      - which curl
+      - which tar
+    cmds:
+      - cmd: echo "Downloading Helm v{{.HELM_VERSION}}..."
+      - cmd: curl -sSfL 'https://get.helm.sh/helm-v{{.HELM_VERSION}}-{{OS}}-{{ARCH}}.tar.gz' --output - | tar xzvOf - '{{OS}}-{{ARCH}}/helm' > {{.HELM_BIN}}
+      - cmd: chmod +x {{.HELM_BIN}}
+    status:
+      - test -x {{.HELM_BIN}}
+
+  deps:kubectl:
+    desc: Ensure supported kubectl version is installed
+    internal: true
+    deps:
+      - deps:bin-dir
+    preconditions:
+      - which curl
+    cmds:
+      - cmd: echo "Downloading Kubectl v{{.KUBECTL_VERSION}}..."
+      - cmd: curl -L "https://dl.k8s.io/release/v{{.KUBECTL_VERSION}}/bin/{{OS}}/{{ARCH}}/kubectl" -o {{.KUBECTL_BIN}}
+      - cmd: chmod +x {{.KUBECTL_BIN}}
+    status:
+      - test -x {{.KUBECTL_BIN}}
+
+  deps:kind:
+    desc: Ensure supported kind version is installed
+    internal: true
+    deps:
+      - deps:bin-dir
+    preconditions:
+      - which go
+    cmds:
+      - cmd: echo "Downloading Kind v{{.KIND_VERSION}}..."
+      - cmd: GOBIN={{.BIN_DIR}} go install sigs.k8s.io/kind@v{{.KIND_VERSION}}
+      - cmd: mv {{.BIN_DIR}}/kind {{.KIND_BIN}}
+    status:
+      - test -x {{.KIND_BIN}}
+
+  deps:uv:
+    desc: Install uv
+    internal: true
+    deps:
+      - deps:bin-dir
+    preconditions:
+      - which curl
+    env:
+      UV_INSTALL_DIR: "{{ .BIN_DIR }}"
+    cmds:
+      - curl -sfL https://astral.sh/uv/{{.UV_VERSION}}/install.sh | sh
+      - mv {{.BIN_DIR}}/uv {{.UV_BIN}}
+      - chmod +x {{.UV_BIN}}
+      - rm {{.BIN_DIR}}/uvx
+    status:
+      - test -x {{.UV_BIN}}
+
+  deps:cosign:
+    desc: Install sigstore cosign
+    internal: true
+    cmds:
+      - curl -sfL https://github.com/sigstore/cosign/releases/download/v{{.COSIGN_VERSION}}/cosign-{{OS}}-{{ARCH}} -o {{.BIN_DIR}}/cosign-{{.COSIGN_VERSION}}
+      - chmod +x {{.BIN_DIR}}/cosign-{{.COSIGN_VERSION}}
+    status:
+      - test -x {{.COSIGN_BIN}}
+
+  deps:dir-ctl:
+    desc: Install dir-ctl
+    internal: true
+    run: once
+    vars:
+      IMAGE_TAG: "{{ .IMAGE_TAG }}"
+    preconditions:
+      - which docker
+    cmds:
+      - docker image pull ghcr.io/agntcy/dir-ctl:{{.IMAGE_TAG}}

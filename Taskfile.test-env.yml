@@ -1,0 +1,163 @@
+# Copyright AGNTCY Contributors (https://github.com/agntcy)
+# SPDX-License-Identifier: Apache-2.0
+
+version: "3"
+
+tasks:
+  default:
+    cmd: echo "Run the main Taskfile instead of this one."
+
+  test-env:kubernetes:setup-cluster:
+    desc: Create a kind cluster and load Docker images
+    deps:
+      - deps:helm
+      - deps:kubectl
+      - deps:kind
+    vars:
+      KIND_CREATE_OPTS: '{{ .KIND_CREATE_OPTS | default "" }}'
+      KIND_CLUSTER_CONFIG_PATH:
+        sh: mktemp
+      # Port mapping is defined in the format of "hostPort1:containerPort1,hostPort2:containerPort2".
+      # Container port should match the NodePort of the service defined in the Helm chart.
+      KIND_EXTRA_PORT_MAPPING: '{{ .KIND_EXTRA_PORT_MAPPING | default "" }}'
+    cmds:
+      # Create cluster config
+      - |
+        cat <<EOF > {{.KIND_CLUSTER_CONFIG_PATH}}
+        kind: Cluster
+        apiVersion: kind.x-k8s.io/v1alpha4
+        nodes:
+          - role: control-plane
+        {{ if .KIND_EXTRA_PORT_MAPPING }}
+            extraPortMappings:
+        {{ range .KIND_EXTRA_PORT_MAPPING | splitList "," }}
+            - hostPort: {{ index (splitList ":" .) 0 }}
+              containerPort: {{ index (splitList ":" .) 1 }}
+              listenAddress: "127.0.0.1"
+              protocol: TCP
+        {{ end }}
+        {{ end }}
+        EOF
+
+      # Create cluster
+      - |
+        {{ .KIND_BIN }} create cluster {{ .KIND_CREATE_OPTS }} --name {{ .KIND_CLUSTER_NAME }} --config {{ .KIND_CLUSTER_CONFIG_PATH }}
+        {{ .KIND_BIN }} export kubeconfig --name {{ .KIND_CLUSTER_NAME }}
+        {{ .KUBECTL_BIN }} cluster-info
+
+  test-env:kubernetes:local:
+    aliases: [deploy:local]
+    desc: Deploy a local Directory server in Kubernetes
+    deps:
+      - task: test-env:kubernetes:setup-cluster
+        vars:
+          KIND_EXTRA_PORT_MAPPING: "{{.API_HOSTPORT}}:{{.API_NODEPORT}},{{.METRICS_HOSTPORT}}:{{.METRICS_NODEPORT}}"
+    vars:
+      # Kind args
+      KIND_CLUSTER_NAME: '{{ .KIND_CLUSTER_NAME | default "sdk-py-test" }}'
+      KIND_CREATE_OPTS: '{{ .KIND_CREATE_OPTS | default "" }}'
+      # Helm args
+      HELM_NAMESPACE: '{{ .HELM_NAMESPACE | default "dir-server" }}'
+      # API config
+      API_HOSTPORT: '{{ .API_HOSTPORT | default "8888" }}'
+      API_NODEPORT: '{{ .API_NODEPORT | default "30088" }}'
+      METRICS_HOSTPORT: '{{ .METRICS_HOSTPORT | default "9090" }}'
+      METRICS_NODEPORT: '{{ .METRICS_NODEPORT | default "30090" }}'
+    cmds:
+      # TODO: make logic idempotent so that running functional tests does not change previous contexts
+
+      # Generate credentials and htpasswd file (using defaults)
+      - task: test-env:kubernetes:gen-htpasswd-creds
+
+      # Cleanup credentials on exit (using defaults)
+      - defer:
+          task: test-env:kubernetes:cleanup-htpasswd-creds
+
+      # Deploy chart
+      - |
+        # Load credentials
+        source /tmp/dir-htpasswd-creds.env
+
+        {{ .HELM_BIN }} install dir oci://ghcr.io/agntcy/dir/helm-charts/dir \
+          --version="{{ .CHART_VERSION }}" \
+          --set apiserver.image.tag="{{ .IMAGE_TAG }}" \
+          --set apiserver.image.pullSecrets="" \
+          --set apiserver.service.type="NodePort" \
+          --set apiserver.service.nodePort="{{.API_NODEPORT}}" \
+          --set apiserver.service.metricsNodePort="{{.METRICS_NODEPORT}}" \
+          {{ if .DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL }}--set apiserver.config.publication.scheduler_interval="{{ .DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL }}"{{ end }} \
+          {{ if .DIRECTORY_SERVER_NAMING_TTL }}--set apiserver.config.naming.ttl="{{ .DIRECTORY_SERVER_NAMING_TTL }}"{{ end }} \
+          --set apiserver.config.routing.refresh_interval="1s" \
+          --set apiserver.secrets.ociAuth.username="${HTPASSWD_USERNAME}" \
+          --set apiserver.secrets.ociAuth.password="${HTPASSWD_PASSWORD}" \
+          --set apiserver.zot.authHeader="${HTPASSWD_AUTH_HEADER}" \
+          --set-file apiserver.zot.secretFiles.htpasswd="/tmp/dir-htpasswd" \
+          --set apiserver.secrets.syncAuth.username="${HTPASSWD_SYNC_USERNAME}" \
+          --set apiserver.secrets.syncAuth.password="${HTPASSWD_SYNC_PASSWORD}" \
+          {{ if .DIRECTORY_SERVER_RATELIMIT_ENABLED }}--set apiserver.config.ratelimit.enabled="{{ .DIRECTORY_SERVER_RATELIMIT_ENABLED }}"{{ end }} \
+          {{ if .DIRECTORY_SERVER_RATELIMIT_GLOBAL_RPS }}--set apiserver.config.ratelimit.global_rps="{{ .DIRECTORY_SERVER_RATELIMIT_GLOBAL_RPS }}"{{ end }} \
+          {{ if .DIRECTORY_SERVER_RATELIMIT_GLOBAL_BURST }}--set apiserver.config.ratelimit.global_burst="{{ .DIRECTORY_SERVER_RATELIMIT_GLOBAL_BURST }}"{{ end }} \
+          {{ if .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_RPS }}--set apiserver.config.ratelimit.per_client_rps="{{ .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_RPS }}"{{ end }} \
+          {{ if .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_BURST }}--set apiserver.config.ratelimit.per_client_burst="{{ .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_BURST }}"{{ end }} \
+          {{ if .DIRECTORY_SERVER_OASF_API_VALIDATION_SCHEMA_URL }}--set apiserver.config.oasf_api_validation.schema_url="{{ .DIRECTORY_SERVER_OASF_API_VALIDATION_SCHEMA_URL }}"{{ end }} \
+          --set apiserver.reconciler.image.tag="{{ .IMAGE_TAG }}" \
+          --set apiserver.reconciler.config.regsync.interval="10s" \
+          --set apiserver.reconciler.config.indexer.interval="10s" \
+          --set apiserver.reconciler.config.name.interval="5s" \
+          --set apiserver.reconciler.config.signature.interval="5s" \
+          --namespace {{ .HELM_NAMESPACE }} \
+          --create-namespace \
+          --wait \
+          --wait-for-jobs \
+          --timeout "15m"
+
+  test-env:kubernetes:local:cleanup:
+    desc: Cleanup Kubernetes environment for local deployment
+    deps:
+      - deps:kind
+    vars:
+      KIND_CLUSTER_NAME: '{{ .KIND_CLUSTER_NAME | default "sdk-py-test" }}'
+    cmds:
+      - "{{ .KIND_BIN }} delete cluster --name {{ .KIND_CLUSTER_NAME }}"
+
+  test-env:kubernetes:gen-htpasswd-creds:
+    desc: Generate htpasswd credentials and files for DIR deployment
+    vars:
+      HTPASSWD_USERNAME: '{{ .HTPASSWD_USERNAME | default "apiserver" }}'
+      HTPASSWD_SYNC_USERNAME: '{{ .HTPASSWD_SYNC_USERNAME | default "sync-user" }}'
+      CREDS_FILE: '{{ .CREDS_FILE | default "/tmp/dir-htpasswd-creds.env" }}'
+      HTPASSWD_FILE: '{{ .HTPASSWD_FILE | default "/tmp/dir-htpasswd" }}'
+    cmds:
+      - |
+        # Generate fresh passwords
+        HTPASSWD_PASSWORD="$(openssl rand -hex 16)"
+        HTPASSWD_SYNC_PASSWORD="$(openssl rand -hex 16)"
+
+        # Generate derived values
+        HTPASSWD_AUTH_HEADER="$(echo -n "{{ .HTPASSWD_USERNAME }}:${HTPASSWD_PASSWORD}" | base64)"
+        HTPASSWD_ADMIN="$(htpasswd -nbB "{{ .HTPASSWD_USERNAME }}" "${HTPASSWD_PASSWORD}" | sed 's/^{{ .HTPASSWD_USERNAME }}://')"
+        HTPASSWD_SYNC="$(htpasswd -nbB "{{ .HTPASSWD_SYNC_USERNAME }}" "${HTPASSWD_SYNC_PASSWORD}" | sed 's/^{{ .HTPASSWD_SYNC_USERNAME }}://')"
+
+        # Write credentials to env file (for helm --set commands)
+        cat > {{ .CREDS_FILE }} << EOF
+        export HTPASSWD_USERNAME="{{ .HTPASSWD_USERNAME }}"
+        export HTPASSWD_PASSWORD="${HTPASSWD_PASSWORD}"
+        export HTPASSWD_AUTH_HEADER="${HTPASSWD_AUTH_HEADER}"
+        export HTPASSWD_SYNC_USERNAME="{{ .HTPASSWD_SYNC_USERNAME }}"
+        export HTPASSWD_SYNC_PASSWORD="${HTPASSWD_SYNC_PASSWORD}"
+        EOF
+
+        # Write htpasswd file (for helm --set-file commands)
+        cat > {{ .HTPASSWD_FILE }} << EOF
+        {{ .HTPASSWD_USERNAME }}:${HTPASSWD_ADMIN}
+        {{ .HTPASSWD_SYNC_USERNAME }}:${HTPASSWD_SYNC}
+        EOF
+
+  test-env:kubernetes:cleanup-htpasswd-creds:
+    desc: Cleanup htpasswd credentials and files
+    vars:
+      CREDS_FILE: '{{ .CREDS_FILE | default "/tmp/dir-htpasswd-creds.env" }}'
+      HTPASSWD_FILE: '{{ .HTPASSWD_FILE | default "/tmp/dir-htpasswd" }}'
+    cmds:
+      - rm -f {{ .CREDS_FILE }}
+      - rm -f {{ .HTPASSWD_FILE }}
