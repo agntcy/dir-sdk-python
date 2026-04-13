@@ -1,0 +1,34 @@
+# Copyright AGNTCY Contributors (https://github.com/agntcy)
+# SPDX-License-Identifier: Apache-2.0
+
+name: Release SDK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # Required for npm OIDC trusted publishing
+
+jobs:
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Install Task
+        uses: go-task/setup-task@3be4020d41929789a01026e0e427a4321ce0ad44 #v2.0.0
+
+      - name: Build the Python package
+        run: |
+          task sdk:build:python
+
+      - name: Publish the Python SDK
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          task sdk:release:python
