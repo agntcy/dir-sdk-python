@@ -39,7 +39,6 @@ tasks:
 
   sdk:build:python:
     desc: Build python client SDK package
-    dir: ./dir-sdk-python
     deps:
       - task: sdk:deps:python
     cmds:
@@ -60,7 +59,6 @@ tasks:
 
   sdk:test:python:
     desc: Test python client SDK package
-    dir: ./dir-sdk-python
     deps:
       - task: sdk:deps:python
     cmds:
@@ -80,7 +78,6 @@ tasks:
 
   sdk:deps:python:
     desc: Install deps for python SDK package
-    dir: ./dir-sdk-python
     deps:
       - task: deps:uv
       - task: deps:cosign
@@ -91,7 +88,7 @@ tasks:
   sdk:deps:python:example:
     desc: Install deps for Python SDK example package
     internal: true
-    dir: ./sdk/examples/example-py
+    dir: ./examples
     deps:
       - task: deps:uv
     cmds:
@@ -105,7 +102,6 @@ tasks:
 
   sdk:release:python:
     desc: Release python client SDK package
-    dir: ./dir-sdk-python
     env:
       UV_PUBLISH_TOKEN: "{{ .UV_PUBLISH_TOKEN }}"
     deps:
