@@ -9,7 +9,9 @@ source = { editable = "../" }
 dependencies = [
     { name = "agntcy-dir-grpc-python" },
     { name = "agntcy-dir-protocolbuffers-python" },
+    { name = "authlib" },
     { name = "grpcio" },
+    { name = "httpx" },
     { name = "pyasn1" },
     { name = "spiffe" },
     { name = "spiffe-tls" },
@@ -19,7 +21,9 @@ dependencies = [
 requires-dist = [
     { name = "agntcy-dir-grpc-python", specifier = "==1.78.0.1.20260319131759+f3a65f0dc151" },
     { name = "agntcy-dir-protocolbuffers-python", specifier = "==34.0.0.1.20260319131759+f3a65f0dc151" },
+    { name = "authlib", specifier = ">=1.6.9" },
     { name = "grpcio", specifier = ">=1.78.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pyasn1", specifier = ">=0.6.3" },
     { name = "spiffe", specifier = ">=0.2.6" },
     { name = "spiffe-tls", specifier = ">=0.3.1" },
@@ -27,7 +31,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest", specifier = ">=9.0.0" },
     { name = "uuid", specifier = ">=1.30" },
 ]
 
@@ -82,6 +86,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/96/f0/5eb65b2bb0d09ac6776f2eb54adee6abe8228ea05b20a5ad0e4945de8aac/anyio-4.12.1.tar.gz", hash = "sha256:41cfcc3a4c85d3f05c932da7c26d0201ac36f72abd4435ba90d0464a3ffed703", size = 228685, upload-time = "2026-01-06T11:45:21.246Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/38/0e/27be9fdef66e72d64c0cdc3cc2823101b80585f8119b5c112c2e8f5f7dab/anyio-4.12.1-py3-none-any.whl", hash = "sha256:d405828884fc140aa80a3c667b8beed277f1dfedec42ba031bd6ac3db606ab6c", size = 113592, upload-time = "2026-01-06T11:45:19.497Z" },
+]
+
+[[package]]
+name = "authlib"
+version = "1.6.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/aa/e2/2cd626412bfc3c78b17ca5e5ea8d489f8cae31d40b061f4da0a89068d8a3/authlib-1.6.10.tar.gz", hash = "sha256:856a4f54d6ef3361ca6bb6d14a27e8b88f8097cca795fb428ffe13720e2ecde6", size = 165333, upload-time = "2026-04-13T13:30:34.718Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7d/f6/9093f1ed17b6e2f4ac50d214543d4ec5268902a70e2158a752a06423b5ef/authlib-1.6.10-py2.py3-none-any.whl", hash = "sha256:aa639b43292554539924a3b4aaa9e81cd67ab64d3e28b22428c61f1200240287", size = 244351, upload-time = "2026-04-13T13:30:33.34Z" },
 ]
 
 [[package]]
