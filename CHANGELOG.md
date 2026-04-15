@@ -3,7 +3,7 @@
 [agntcy/dir]: https://github.com/agntcy/dir
 [agntcy/dir-sdk-python]: https://github.com/agntcy/dir-sdk-python
 
-## 1.1.1 (2026-04-02)
+## 1.2.1 (2026-04-15)
 
 ### Added
 

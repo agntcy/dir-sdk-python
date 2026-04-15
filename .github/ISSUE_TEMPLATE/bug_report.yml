@@ -30,7 +30,7 @@ body:
         If applicable, provide the version number or release tag where this
         issue was encountered
       options:
-        - v1.1.1
+        - v1.2.1
       default: 0
     validations:
       required: false

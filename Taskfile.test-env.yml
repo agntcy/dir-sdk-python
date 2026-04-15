@@ -79,8 +79,7 @@ tasks:
         source /tmp/dir-htpasswd-creds.env
 
         {{ .HELM_BIN }} install dir oci://ghcr.io/agntcy/dir/helm-charts/dir \
-          --version="{{ .CHART_VERSION }}" \
-          --set apiserver.image.tag="{{ .IMAGE_TAG }}" \
+          --version="{{ .DIR_CHART_VERSION }}" \
           --set apiserver.image.pullSecrets="" \
           --set apiserver.service.type="NodePort" \
           --set apiserver.service.nodePort="{{.API_NODEPORT}}" \
@@ -100,7 +99,6 @@ tasks:
           {{ if .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_RPS }}--set apiserver.config.ratelimit.per_client_rps="{{ .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_RPS }}"{{ end }} \
           {{ if .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_BURST }}--set apiserver.config.ratelimit.per_client_burst="{{ .DIRECTORY_SERVER_RATELIMIT_PER_CLIENT_BURST }}"{{ end }} \
           {{ if .DIRECTORY_SERVER_OASF_API_VALIDATION_SCHEMA_URL }}--set apiserver.config.oasf_api_validation.schema_url="{{ .DIRECTORY_SERVER_OASF_API_VALIDATION_SCHEMA_URL }}"{{ end }} \
-          --set apiserver.reconciler.image.tag="{{ .IMAGE_TAG }}" \
           --set apiserver.reconciler.config.regsync.interval="10s" \
           --set apiserver.reconciler.config.indexer.interval="10s" \
           --set apiserver.reconciler.config.name.interval="5s" \

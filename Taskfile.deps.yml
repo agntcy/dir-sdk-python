@@ -88,8 +88,8 @@ tasks:
     internal: true
     run: once
     vars:
-      IMAGE_TAG: "{{ .IMAGE_TAG }}"
+      DIRCTL_IMAGE_TAG: "{{ .DIRCTL_IMAGE_TAG }}"
     preconditions:
       - which docker
     cmds:
-      - docker image pull ghcr.io/agntcy/dir-ctl:{{.IMAGE_TAG}}
+      - docker image pull ghcr.io/agntcy/dir-ctl:{{ .DIRCTL_IMAGE_TAG }}

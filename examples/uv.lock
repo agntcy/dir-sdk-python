@@ -4,7 +4,7 @@ requires-python = ">=3.10"
 
 [[package]]
 name = "agntcy-dir"
-version = "1.1.1"
+version = "1.2.1"
 source = { editable = "../" }
 dependencies = [
     { name = "agntcy-dir-grpc-python" },

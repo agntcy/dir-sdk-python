@@ -1,12 +1,12 @@
 [project]
 name = "agntcy-dir"
-version = "1.1.1"
+version = "1.2.1"
 description = "Directory SDK"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "agntcy-dir-grpc-python==1.78.0.1.20260319131759+f3a65f0dc151",
-    "agntcy-dir-protocolbuffers-python==34.0.0.1.20260319131759+f3a65f0dc151",
+    "agntcy-dir-grpc-python==1.78.0.1.20260413212701+cb1fb6353ac1", # v1.2.0
+    "agntcy-dir-protocolbuffers-python==34.0.0.1.20260413212701+cb1fb6353ac1", # v1.2.0
     "authlib>=1.6.9",
     "httpx>=0.28.1",
     "grpcio>=1.78.0",
