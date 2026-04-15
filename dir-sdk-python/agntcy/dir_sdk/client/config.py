@@ -129,7 +129,6 @@ class Config:
         self.server_address = server_address
         self.dirctl_path = dirctl_path
         self.spiffe_socket_path = spiffe_socket_path
-        self.auth_mode = auth_mode  # '', insecure, x509, jwt, tls, oidc
         resolved_auth_token = auth_token or oidc_access_token or ""
         self.auth_token = resolved_auth_token
         # Backward-compatible alias for older callers.

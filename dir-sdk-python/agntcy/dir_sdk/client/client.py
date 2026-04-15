@@ -458,9 +458,9 @@ class Client:
         return addr.rsplit(":", 1)[0]
 
     def publish(
-            self,
-            req: routing_v1.PublishRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: routing_v1.PublishRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> None:
         """Publish objects to the Routing API matching the specified criteria.
 
@@ -493,9 +493,9 @@ class Client:
             raise RuntimeError(msg) from e
 
     def list(
-            self,
-            req: routing_v1.ListRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: routing_v1.ListRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> list[routing_v1.ListResponse]:
         """List objects from the Routing API matching the specified criteria.
 
@@ -536,9 +536,9 @@ class Client:
         return results
 
     def search_cids(
-            self,
-            req: search_v1.SearchCIDsRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: search_v1.SearchCIDsRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[search_v1.SearchCIDsResponse]:
         """Search for record CIDs matching the specified queries.
 
@@ -580,9 +580,9 @@ class Client:
         return results
 
     def search_records(
-            self,
-            req: search_v1.SearchRecordsRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: search_v1.SearchRecordsRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[search_v1.SearchRecordsResponse]:
         """Search for full records matching the specified queries.
 
@@ -623,9 +623,9 @@ class Client:
         return results
 
     def unpublish(
-            self,
-            req: routing_v1.UnpublishRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: routing_v1.UnpublishRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> None:
         """Unpublish objects from the Routing API matching the specified criteria.
 
@@ -658,9 +658,9 @@ class Client:
             raise RuntimeError(msg) from e
 
     def push(
-            self,
-            records: builtins.list[core_v1.Record],
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        records: builtins.list[core_v1.Record],
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[core_v1.RecordRef]:
         """Push records to the Store API.
 
@@ -701,9 +701,9 @@ class Client:
         return results
 
     def push_referrer(
-            self,
-            req: builtins.list[store_v1.PushReferrerRequest],
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: builtins.list[store_v1.PushReferrerRequest],
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[store_v1.PushReferrerResponse]:
         """Push records with referrer metadata to the Store API.
 
@@ -744,9 +744,9 @@ class Client:
         return results
 
     def pull(
-            self,
-            refs: builtins.list[core_v1.RecordRef],
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        refs: builtins.list[core_v1.RecordRef],
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[core_v1.Record]:
         """Pull records from the Store API by their references.
 
@@ -787,9 +787,9 @@ class Client:
         return results
 
     def pull_referrer(
-            self,
-            req: builtins.list[store_v1.PullReferrerRequest],
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: builtins.list[store_v1.PullReferrerRequest],
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[store_v1.PullReferrerResponse]:
         """Pull records with referrer metadata from the Store API.
 
@@ -832,9 +832,9 @@ class Client:
         return results
 
     def lookup(
-            self,
-            refs: builtins.list[core_v1.RecordRef],
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        refs: builtins.list[core_v1.RecordRef],
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[core_v1.RecordMeta]:
         """Look up metadata for records in the Store API.
 
@@ -876,9 +876,9 @@ class Client:
         return results
 
     def delete(
-            self,
-            refs: builtins.list[core_v1.RecordRef],
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        refs: builtins.list[core_v1.RecordRef],
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> None:
         """Delete records from the Store API.
 
@@ -909,9 +909,9 @@ class Client:
             raise RuntimeError(msg) from e
 
     def create_sync(
-            self,
-            req: store_v1.CreateSyncRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: store_v1.CreateSyncRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> store_v1.CreateSyncResponse:
         """Create a new synchronization configuration.
 
@@ -951,9 +951,9 @@ class Client:
         return response
 
     def list_syncs(
-            self,
-            req: store_v1.ListSyncsRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: store_v1.ListSyncsRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[store_v1.ListSyncsItem]:
         """List existing synchronization configurations.
 
@@ -998,9 +998,9 @@ class Client:
         return results
 
     def get_sync(
-            self,
-            req: store_v1.GetSyncRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: store_v1.GetSyncRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> store_v1.GetSyncResponse:
         """Retrieve detailed information about a specific synchronization configuration.
 
@@ -1040,9 +1040,9 @@ class Client:
         return response
 
     def delete_sync(
-            self,
-            req: store_v1.DeleteSyncRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: store_v1.DeleteSyncRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> None:
         """Delete a synchronization configuration.
 
@@ -1075,9 +1075,9 @@ class Client:
             raise RuntimeError(msg) from e
 
     def listen(
-            self,
-            req: events_v1.ListenRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: events_v1.ListenRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> grpc.UnaryStreamMultiCallable:
         """
         Listen establishes a streaming connection to receive events.
@@ -1113,9 +1113,9 @@ class Client:
         return stream
 
     def create_publication(
-            self,
-            req: routing_v1.PublishRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: routing_v1.PublishRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> routing_v1.CreatePublicationResponse:
         """
         Create publication creates a new publication request that will be processed by the PublicationWorker.
@@ -1147,9 +1147,9 @@ class Client:
         return response
 
     def get_publication(
-            self,
-            req: routing_v1.GetPublicationRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: routing_v1.GetPublicationRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> routing_v1.GetPublicationResponse:
         """
         GetPublication retrieves details of a specific publication request by its identifier.
@@ -1180,9 +1180,9 @@ class Client:
         return response
 
     def list_publication(
-            self,
-            req: routing_v1.ListPublicationsRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: routing_v1.ListPublicationsRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> builtins.list[routing_v1.ListPublicationsItem]:
         """
         ListPublications returns a stream of all publication requests in the system.
@@ -1217,10 +1217,10 @@ class Client:
         return results
 
     def resolve(
-            self,
-            name: str,
-            version: str | None = None,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        name: str,
+        version: str | None = None,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> naming_v1.ResolveResponse:
         """Resolve a record name to CIDs.
 
@@ -1264,11 +1264,11 @@ class Client:
         return response
 
     def get_verification_info(
-            self,
-            cid: str | None = None,
-            name: str | None = None,
-            version: str | None = None,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        cid: str | None = None,
+        name: str | None = None,
+        version: str | None = None,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> naming_v1.GetVerificationInfoResponse:
         """Get verification info for a record.
 
@@ -1319,9 +1319,9 @@ class Client:
         return response
 
     def verify(
-            self,
-            req: sign_v1.VerifyRequest,
-            metadata: Sequence[tuple[str, str]] | None = None,
+        self,
+        req: sign_v1.VerifyRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
     ) -> sign_v1.VerifyResponse:
         """Verify a cryptographic signature on a record.
 
@@ -1411,10 +1411,10 @@ class Client:
                 pass
 
     def _verify_with_key(
-            self,
-            record_ref: core_v1.RecordRef,
-            key_verifier: sign_v1.VerifyWithKey,
-            output_path: str,
+        self,
+        record_ref: core_v1.RecordRef,
+        key_verifier: sign_v1.VerifyWithKey,
+        output_path: str,
     ) -> None:
         """Verify a record using a public key.
 
@@ -1462,10 +1462,10 @@ class Client:
             raise RuntimeError(msg) from e
 
     def _verify_with_any(
-            self,
-            record_ref: core_v1.RecordRef,
-            any_verifier: sign_v1.VerifyWithAny | None,
-            output_path: str,
+        self,
+        record_ref: core_v1.RecordRef,
+        any_verifier: sign_v1.VerifyWithAny | None,
+        output_path: str,
     ) -> None:
         """Verify a record using any valid signature.
 
@@ -1519,10 +1519,10 @@ class Client:
             raise RuntimeError(msg) from e
 
     def _verify_with_oidc(
-            self,
-            record_ref: core_v1.RecordRef,
-            oidc_verifier: sign_v1.VerifyWithOIDC | None,
-            output_path: str,
+        self,
+        record_ref: core_v1.RecordRef,
+        oidc_verifier: sign_v1.VerifyWithOIDC | None,
+        output_path: str,
     ) -> None:
         """Verify a record using OIDC-based verification.
 
@@ -1608,8 +1608,8 @@ class Client:
             raise RuntimeError(msg) from e
 
     def sign(
-            self,
-            req: sign_v1.SignRequest,
+        self,
+        req: sign_v1.SignRequest,
     ) -> None:
         """Sign a record with a cryptographic signature.
 
@@ -1653,9 +1653,9 @@ class Client:
             raise RuntimeError(msg) from e
 
     def _sign_with_key(
-            self,
-            record_ref: core_v1.RecordRef,
-            key_signer: sign_v1.SignWithKey,
+        self,
+        record_ref: core_v1.RecordRef,
+        key_signer: sign_v1.SignWithKey,
     ) -> None:
         """Sign a record using a private key.
 
@@ -1709,9 +1709,9 @@ class Client:
             raise RuntimeError(msg) from e
 
     def _sign_with_oidc(
-            self,
-            record_ref: core_v1.RecordRef,
-            oidc_signer: sign_v1.SignWithOIDC,
+        self,
+        record_ref: core_v1.RecordRef,
+        oidc_signer: sign_v1.SignWithOIDC,
     ) -> None:
         """Sign a record using OIDC-based authentication.
 
