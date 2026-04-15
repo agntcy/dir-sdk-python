@@ -4,6 +4,7 @@
 name: Release SDK
 
 on:
+  workflow_call:
   workflow_dispatch:
 
 permissions:

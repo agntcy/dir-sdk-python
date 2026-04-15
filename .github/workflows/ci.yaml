@@ -37,14 +37,14 @@ jobs:
         with:
           filters: |
             code:
-              - '!docs/**'
-              - '!README.md'
               - '!CHANGELOG.md'
-              - '!CONTRIBUTING.md'
               - '!CODE_OF_CONDUCT.md'
-              - '!SECURITY.md'
+              - '!CONTRIBUTING.md'
               - '!LICENSE.md'
               - '!MAINTAINERS.md'
+              - '!README.md'
+              - '!RELEASE.md'
+              - '!SECURITY.md'
               - '!.gitignore'
 
       - name: Determine result
@@ -63,8 +63,15 @@ jobs:
       - changes
     uses: ./.github/workflows/reusable-test-sdk.yaml
     with:
-      image_repo: ghcr.io/agntcy
-      image_tag: ${{ github.sha }}
+      dir_chart_version: v1.2.0
+      dirctl_image_tag: v1.2.0
+
+  release:
+    name: Release
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    needs:
+      - test
+    uses: ./.github/workflows/reusable-release-sdk.yaml
 
   success:
     name: Success
@@ -72,6 +79,7 @@ jobs:
     needs:
       - changes
       - test
+      - release
     runs-on: ubuntu-latest
     steps:
       - name: Echo Success
