@@ -72,6 +72,7 @@ jobs:
     needs:
       - test
     uses: ./.github/workflows/reusable-release-sdk.yaml
+    secrets: inherit
 
   success:
     name: Success
