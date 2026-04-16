@@ -107,4 +107,10 @@ tasks:
     deps:
       - task: deps:uv
     cmds:
-      - "{{.UV_BIN}} publish"
+      - |
+        if [ -z "$UV_PUBLISH_TOKEN" ]; then
+          echo "UV_PUBLISH_TOKEN not set" 1>&2
+          exit 1
+        fi
+
+        {{.UV_BIN}} publish
