@@ -19,8 +19,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agntcy-dir-grpc-python", specifier = "==1.78.0.1.20260319131759+f3a65f0dc151" },
-    { name = "agntcy-dir-protocolbuffers-python", specifier = "==34.0.0.1.20260319131759+f3a65f0dc151" },
+    { name = "agntcy-dir-grpc-python", specifier = "==1.78.0.1.20260413212701+cb1fb6353ac1" },
+    { name = "agntcy-dir-protocolbuffers-python", specifier = "==34.0.0.1.20260413212701+cb1fb6353ac1" },
     { name = "authlib", specifier = ">=1.6.9" },
     { name = "grpcio", specifier = ">=1.78.0" },
     { name = "httpx", specifier = ">=0.28.1" },
@@ -37,7 +37,7 @@ dev = [
 
 [[package]]
 name = "agntcy-dir-grpc-python"
-version = "1.78.0.1.20260319131759+f3a65f0dc151"
+version = "1.78.0.1.20260413212701+cb1fb6353ac1"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "agntcy-dir-protocolbuffers-python" },
@@ -45,7 +45,7 @@ dependencies = [
     { name = "grpcio" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/agntcy-dir-grpc-python/agntcy_dir_grpc_python-1.78.0.1.20260319131759+f3a65f0dc151-py3-none-any.whl", upload-time = "2026-03-19T13:17:59Z" },
+    { url = "https://buf.build/gen/python/agntcy-dir-grpc-python/agntcy_dir_grpc_python-1.78.0.1.20260413212701+cb1fb6353ac1-py3-none-any.whl", upload-time = "2026-04-13T21:27:01Z" },
 ]
 
 [[package]]
@@ -63,7 +63,7 @@ wheels = [
 
 [[package]]
 name = "agntcy-dir-protocolbuffers-python"
-version = "34.0.0.1.20260319131759+f3a65f0dc151"
+version = "34.0.0.1.20260413212701+cb1fb6353ac1"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "agntcy-dir-protocolbuffers-pyi" },
@@ -71,7 +71,7 @@ dependencies = [
     { name = "protobuf" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-python/agntcy_dir_protocolbuffers_python-34.0.0.1.20260319131759+f3a65f0dc151-py3-none-any.whl", upload-time = "2026-03-19T13:17:59Z" },
+    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-python/agntcy_dir_protocolbuffers_python-34.0.0.1.20260413212701+cb1fb6353ac1-py3-none-any.whl", upload-time = "2026-04-13T21:27:01Z" },
 ]
 
 [[package]]
