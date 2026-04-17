@@ -5,6 +5,9 @@ name: Release SDK
 
 on:
   workflow_call:
+    secrets:
+      PYPI_API_TOKEN:
+        required: true
   workflow_dispatch:
 
 permissions:
