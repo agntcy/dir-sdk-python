@@ -63,8 +63,8 @@ jobs:
       - changes
     uses: ./.github/workflows/reusable-test-sdk.yaml
     with:
-      dir_chart_version: v1.2.0
-      dirctl_image_tag: v1.2.0
+      dir_chart_version: v1.3.0
+      dirctl_image_tag: v1.3.0
 
   release:
     name: Release
