@@ -3,8 +3,7 @@
   "extends": [
     "config:recommended",
     "helpers:pinGitHubActionDigestsToSemver",
-    ":semanticCommitTypeAll(chore)",
-    ":dependencyDashboard"
+    ":semanticCommitTypeAll(chore)"
   ],
   "configMigration": true,
   "customManagers": [
@@ -31,12 +30,10 @@
       ]
     }
   ],
-  "dependencyDashboardAutoclose": true,
-  "dependencyDashboardLabels": ["dependencies"],
-  "dependencyDashboardOSVVulnerabilitySummary": "all",
   "enabled": true,
-  "minimumReleaseAge": "3 days",
+  "minimumReleaseAge": "7 days",
   "schedule": ["before 6am on Monday"],
+  "prCreation": "not-pending",
   "enabledManagers": [
     "custom.regex",
     "github-actions",
