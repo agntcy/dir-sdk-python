@@ -64,14 +64,9 @@ def build_client() -> Client:
         ),
     )
     client = Client(config)
-    holder = getattr(client, "_oauth_holder", None)
-    if holder is not None:
-        try:
-            holder.get_access_token()
-            print("Using cached OIDC token.")
-            return client
-        except RuntimeError:
-            pass
+    if client.has_cached_oauth_token():
+        print("Using cached OIDC token.")
+        return client
 
     print("No cached OIDC token found. Starting interactive login.")
     client.authenticate_oauth_pkce()

@@ -12,8 +12,9 @@ import unittest.mock
 from datetime import UTC, datetime, timedelta
 
 from agntcy.dir_sdk.client import Client, Config
-from agntcy.dir_sdk.client.oauth_pkce import OAuthTokenHolder
-from agntcy.dir_sdk.client.token_cache import TOKEN_CACHE_FILE, TokenCache
+from agntcy.dir_sdk.client.auth.oauth_pkce import OAuthTokenHolder
+from agntcy.dir_sdk.client.auth.token_cache import TOKEN_CACHE_FILE, TokenCache
+from agntcy.dir_sdk.client.transport.channels import create_oauth_pkce_channel
 
 
 class OIDCAuthConfigTests(unittest.TestCase):
@@ -71,19 +72,20 @@ class OIDCAuthClientTests(unittest.TestCase):
 
         with (
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.fetch_openid_configuration",
+                "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
             ) as fetch_mock,
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.run_loopback_pkce_login",
+                "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
             ) as login_mock,
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.TokenCache.get_valid_token",
+                "agntcy.dir_sdk.client.auth.session.TokenCache.get_valid_token",
                 return_value=None,
             ),
         ):
             client = Client(config)
 
-        self.assertEqual(client._oauth_holder.get_access_token(), "preissued-token")
+        self.assertTrue(client.has_cached_oauth_token())
+        self.assertEqual(client.get_access_token(), "preissued-token")
         fetch_mock.assert_not_called()
         login_mock.assert_not_called()
 
@@ -95,20 +97,19 @@ class OIDCAuthClientTests(unittest.TestCase):
 
         with (
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.fetch_openid_configuration",
+                "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
             ) as fetch_mock,
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.run_loopback_pkce_login",
+                "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
             ) as login_mock,
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.TokenCache.get_valid_token",
+                "agntcy.dir_sdk.client.auth.session.TokenCache.get_valid_token",
                 return_value=None,
             ),
         ):
             client = Client(config)
 
-        with self.assertRaisesRegex(RuntimeError, "DIRECTORY_CLIENT_AUTH_TOKEN"):
-            client._oauth_holder.get_access_token()
+        self.assertFalse(client.has_cached_oauth_token())
         fetch_mock.assert_not_called()
         login_mock.assert_not_called()
 
@@ -139,15 +140,16 @@ class OIDCAuthClientTests(unittest.TestCase):
             with (
                 unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True),
                 unittest.mock.patch(
-                    "agntcy.dir_sdk.client.client.fetch_openid_configuration",
+                    "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
                 ) as fetch_mock,
                 unittest.mock.patch(
-                    "agntcy.dir_sdk.client.client.run_loopback_pkce_login",
+                    "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
                 ) as login_mock,
             ):
                 client = Client(config)
 
-        self.assertEqual(client._oauth_holder.get_access_token(), "cached-token")
+        self.assertTrue(client.has_cached_oauth_token())
+        self.assertEqual(client.get_access_token(), "cached-token")
         fetch_mock.assert_not_called()
         login_mock.assert_not_called()
 
@@ -164,14 +166,14 @@ class OIDCAuthClientTests(unittest.TestCase):
 
                 with (
                     unittest.mock.patch(
-                        "agntcy.dir_sdk.client.client.fetch_openid_configuration",
+                        "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
                         return_value={
                             "authorization_endpoint": "https://issuer.example.com/auth",
                             "token_endpoint": "https://issuer.example.com/token",
                         },
                     ) as fetch_mock,
                     unittest.mock.patch(
-                        "agntcy.dir_sdk.client.client.run_loopback_pkce_login",
+                        "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
                         return_value={
                             "access_token": "fresh-token",
                             "refresh_token": "ignored-refresh-token",
@@ -181,7 +183,7 @@ class OIDCAuthClientTests(unittest.TestCase):
                 ):
                     client.authenticate_oauth_pkce()
 
-        self.assertEqual(client._oauth_holder.get_access_token(), "fresh-token")
+        self.assertEqual(client.get_access_token(), "fresh-token")
         fetch_mock.assert_called_once()
         login_mock.assert_called_once()
 
@@ -198,14 +200,14 @@ class OIDCAuthClientTests(unittest.TestCase):
                 client = Client(config)
                 with (
                     unittest.mock.patch(
-                        "agntcy.dir_sdk.client.client.fetch_openid_configuration",
+                        "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
                         return_value={
                             "authorization_endpoint": "https://issuer.example.com/auth",
                             "token_endpoint": "https://issuer.example.com/token",
                         },
                     ),
                     unittest.mock.patch(
-                        "agntcy.dir_sdk.client.client.run_loopback_pkce_login",
+                        "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
                         return_value={
                             "access_token": "fresh-token",
                             "refresh_token": "refresh-token",
@@ -228,35 +230,34 @@ class OIDCAuthClientTests(unittest.TestCase):
         self.assertIsNotNone(cached_token.expires_at)
 
     def test_oauth_channel_uses_configured_tls_ca(self) -> None:
-        client = Client.__new__(Client)
-        client.config = Config(
+        config = Config(
             server_address="directory.example.com:443",
             auth_mode="oidc",
             tls_ca_file="",
         )
-        client._oauth_holder = OAuthTokenHolder()
-        client._oauth_holder.set_tokens("token")
+        oauth_holder = OAuthTokenHolder()
+        oauth_holder.set_tokens("token")
 
         with tempfile.NamedTemporaryFile() as ca_file:
             ca_file.write(b"test-ca")
             ca_file.flush()
-            client.config.tls_ca_file = ca_file.name
+            config.tls_ca_file = ca_file.name
 
             with (
                 unittest.mock.patch(
-                    "agntcy.dir_sdk.client.client.grpc.ssl_channel_credentials",
+                    "agntcy.dir_sdk.client.transport.channels.grpc.ssl_channel_credentials",
                     return_value="creds",
                 ) as creds_mock,
                 unittest.mock.patch(
-                    "agntcy.dir_sdk.client.client.grpc.secure_channel",
+                    "agntcy.dir_sdk.client.transport.channels.grpc.secure_channel",
                     return_value="channel",
                 ) as secure_mock,
                 unittest.mock.patch(
-                    "agntcy.dir_sdk.client.client.grpc.intercept_channel",
+                    "agntcy.dir_sdk.client.transport.channels.grpc.intercept_channel",
                     return_value="intercepted-channel",
                 ) as intercept_mock,
             ):
-                channel = client._Client__create_oauth_pkce_channel()
+                channel = create_oauth_pkce_channel(config, oauth_holder)
 
         self.assertEqual(channel, "intercepted-channel")
         creds_mock.assert_called_once_with(root_certificates=b"test-ca")
@@ -268,30 +269,29 @@ class OIDCAuthClientTests(unittest.TestCase):
         intercept_mock.assert_called_once()
 
     def test_oauth_channel_uses_tls_server_name_override(self) -> None:
-        client = Client.__new__(Client)
-        client.config = Config(
+        config = Config(
             server_address="directory.example.com:443",
             auth_mode="oidc",
             tls_server_name="override.example.com",
         )
-        client._oauth_holder = OAuthTokenHolder()
-        client._oauth_holder.set_tokens("token")
+        oauth_holder = OAuthTokenHolder()
+        oauth_holder.set_tokens("token")
 
         with (
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.grpc.ssl_channel_credentials",
+                "agntcy.dir_sdk.client.transport.channels.grpc.ssl_channel_credentials",
                 return_value="creds",
             ) as creds_mock,
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.grpc.secure_channel",
+                "agntcy.dir_sdk.client.transport.channels.grpc.secure_channel",
                 return_value="channel",
             ) as secure_mock,
             unittest.mock.patch(
-                "agntcy.dir_sdk.client.client.grpc.intercept_channel",
+                "agntcy.dir_sdk.client.transport.channels.grpc.intercept_channel",
                 return_value="intercepted-channel",
             ) as intercept_mock,
         ):
-            channel = client._Client__create_oauth_pkce_channel()
+            channel = create_oauth_pkce_channel(config, oauth_holder)
 
         self.assertEqual(channel, "intercepted-channel")
         creds_mock.assert_called_once_with(root_certificates=None)
