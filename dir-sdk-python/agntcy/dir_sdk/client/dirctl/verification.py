@@ -125,10 +125,13 @@ def _verify_with_oidc(
 
 def parse_verify_response(output_path: str) -> sign_v1.VerifyResponse:
     try:
-        output = open(output_path, "rb").read()
-        json_data = json.loads(output.decode("utf-8"))
+        with open(output_path, "rb") as f:
+            output = f.read().decode("utf-8")
+       
+        json_data = json.loads(output)
         response = sign_v1.VerifyResponse()
         json_format.ParseDict(json_data, response)
+        
         return response
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         msg = f"Failed to parse verification response: {e}"
