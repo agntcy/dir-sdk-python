@@ -282,13 +282,15 @@ class TestClient(unittest.TestCase):
         provider_url = shell_env.get("OIDC_PROVIDER_URL", "")
         client_id = shell_env.get("OIDC_CLIENT_ID", "sigstore")
 
-        oidc_options = sign_v1.SignOptionsOIDC(oidc_provider_url=provider_url, oidc_client_id=client_id)
-        oidc_provider = sign_v1.SignWithOIDC(id_token=token, options=oidc_options)
+        sign_oidc_options = sign_v1.SignOptionsOIDC(oidc_provider_url=provider_url, oidc_client_id=client_id)
+        oidc_provider = sign_v1.SignWithOIDC(id_token=token, options=sign_oidc_options)
         request_oidc_provider = sign_v1.SignRequestProvider(oidc=oidc_provider)
         oidc_request = sign_v1.SignRequest(
             record_ref=record_refs[1],
             provider=request_oidc_provider,
         )
+
+        verify_oidc_options = sign_v1.VerifyOptionsOIDC()
 
         try:
             # Sign and verify using Key signing
@@ -305,7 +307,7 @@ class TestClient(unittest.TestCase):
 
             verify_index = 0
             for ref in record_refs:
-                response = self.client.verify(sign_v1.VerifyRequest(record_ref=ref))
+                response = self.client.verify(sign_v1.VerifyRequest(record_ref=ref, provider=sign_v1.VerifyRequestProvider(any=sign_v1.VerifyWithAny(oidc_options=verify_oidc_options))))
 
                 assert response.success is True
 

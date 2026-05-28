@@ -50,7 +50,8 @@ def _run_verify(config: Config, req: sign_v1.VerifyRequest, output_path: str) ->
     elif provider.HasField("any"):
         _verify_with_any(config, req.record_ref, provider.any, effective_output_path, extra_mounts=extra_mounts)
     else:
-       _verify_with_any(config, req.record_ref, provider.any, effective_output_path, extra_mounts=extra_mounts)
+        msg = "Unsupported verification provider in request"
+        raise RuntimeError(msg)
 
 
 def _verify_with_key(
