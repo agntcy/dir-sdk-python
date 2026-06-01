@@ -154,7 +154,8 @@ client = Client(config)
 # Client construction does not start browser login automatically.
 # Opens the system browser and completes PKCE on loopback:
 try:
-    client.authenticate_oauth_pkce()
+    if not client.has_cached_oauth_token():
+        client.authenticate_oauth_pkce()
 except OAuthPkceError as e:
     print(f"Login failed: {e}")
 ```

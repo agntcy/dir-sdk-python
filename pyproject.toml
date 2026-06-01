@@ -30,6 +30,7 @@ packages = ["dir-sdk-python/agntcy"]
 
 [tool.pytest.ini_options]
 pythonpath = ["dir-sdk-python"]
+addopts = ["--import-mode=importlib",]
 
 [tool.ruff]
 line-length = 88

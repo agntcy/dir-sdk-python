@@ -3,4 +3,4 @@
 
 from agntcy.dir_sdk.client.client import Client
 from agntcy.dir_sdk.client.config import Config
-from agntcy.dir_sdk.client.oauth_pkce import OAuthPkceError as OAuthPkceError
+from agntcy.dir_sdk.client.auth.oauth_pkce import OAuthPkceError as OAuthPkceError
