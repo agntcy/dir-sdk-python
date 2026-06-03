@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
@@ -12,7 +13,9 @@ from agntcy.dir_sdk.models import naming_v1
 
 
 class NamingService(RpcServiceBase):
-    def __init__(self, naming_client: naming_v1.NamingServiceStub, logger) -> None:
+    def __init__(
+        self, naming_client: naming_v1.NamingServiceStub, logger: logging.Logger
+    ) -> None:
         super().__init__(logger)
         self._naming_client = naming_client
 
@@ -22,7 +25,7 @@ class NamingService(RpcServiceBase):
         version: str | None = None,
         metadata: Sequence[tuple[str, str]] | None = None,
     ) -> naming_v1.ResolveResponse:
-        def call():
+        def call() -> naming_v1.ResolveResponse:
             req = naming_v1.ResolveRequest(name=name)
             if version:
                 req.version = version
@@ -37,7 +40,7 @@ class NamingService(RpcServiceBase):
         version: str | None = None,
         metadata: Sequence[tuple[str, str]] | None = None,
     ) -> naming_v1.GetVerificationInfoResponse:
-        def call():
+        def call() -> naming_v1.GetVerificationInfoResponse:
             req = naming_v1.GetVerificationInfoRequest()
             if cid:
                 req.cid = cid

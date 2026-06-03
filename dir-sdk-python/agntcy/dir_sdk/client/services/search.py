@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
@@ -12,7 +13,9 @@ from agntcy.dir_sdk.models import search_v1
 
 
 class SearchService(RpcServiceBase):
-    def __init__(self, search_client: search_v1.SearchServiceStub, logger) -> None:
+    def __init__(
+        self, search_client: search_v1.SearchServiceStub, logger: logging.Logger
+    ) -> None:
         super().__init__(logger)
         self._search_client = search_client
 

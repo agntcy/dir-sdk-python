@@ -5,13 +5,22 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 
 import grpc
+from google.protobuf import message
 from spiffe import WorkloadApiClient
 
+UnaryContinuation = Callable[[grpc.ClientCallDetails, message.Message], grpc.Call]
+StreamContinuation = Callable[
+    [grpc.ClientCallDetails, Iterator[message.Message]], grpc.Call
+]
 
-def _build_call_details(client_call_details, metadata: list[tuple[str, str]]):
+
+def _build_call_details(
+    client_call_details: grpc.ClientCallDetails,
+    metadata: list[tuple[str, str]],
+) -> grpc._interceptor._ClientCallDetails:
     return grpc._interceptor._ClientCallDetails(
         method=client_call_details.method,
         timeout=client_call_details.timeout,
@@ -45,27 +54,45 @@ class JWTAuthInterceptor(
             msg = f"Failed to fetch JWT-SVID: {e}"
             raise RuntimeError(msg) from e
 
-    def _add_jwt_metadata(self, client_call_details):
+    def _add_jwt_metadata(
+        self, client_call_details: grpc.ClientCallDetails
+    ) -> grpc._interceptor._ClientCallDetails:
         metadata = list(client_call_details.metadata or [])
         metadata.append(("authorization", f"Bearer {self._get_jwt_token()}"))
         return _build_call_details(client_call_details, metadata)
 
-    def intercept_unary_unary(self, continuation, client_call_details, request):
+    def intercept_unary_unary(
+        self,
+        continuation: UnaryContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request: message.Message,
+    ) -> grpc.Call:
         return continuation(self._add_jwt_metadata(client_call_details), request)
 
-    def intercept_unary_stream(self, continuation, client_call_details, request):
+    def intercept_unary_stream(
+        self,
+        continuation: UnaryContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request: message.Message,
+    ) -> grpc.Call:
         return continuation(self._add_jwt_metadata(client_call_details), request)
 
     def intercept_stream_unary(
-        self, continuation, client_call_details, request_iterator
-    ):
+        self,
+        continuation: StreamContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request_iterator: Iterator[message.Message],
+    ) -> grpc.Call:
         return continuation(
             self._add_jwt_metadata(client_call_details), request_iterator
         )
 
     def intercept_stream_stream(
-        self, continuation, client_call_details, request_iterator
-    ):
+        self,
+        continuation: StreamContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request_iterator: Iterator[message.Message],
+    ) -> grpc.Call:
         return continuation(
             self._add_jwt_metadata(client_call_details), request_iterator
         )
@@ -82,27 +109,45 @@ class BearerAuthInterceptor(
     def __init__(self, token_supplier: Callable[[], str]) -> None:
         self._token_supplier = token_supplier
 
-    def _add_bearer_metadata(self, client_call_details):
+    def _add_bearer_metadata(
+        self, client_call_details: grpc.ClientCallDetails
+    ) -> grpc._interceptor._ClientCallDetails:
         metadata = list(client_call_details.metadata or [])
         metadata.append(("authorization", f"Bearer {self._token_supplier()}"))
         return _build_call_details(client_call_details, metadata)
 
-    def intercept_unary_unary(self, continuation, client_call_details, request):
+    def intercept_unary_unary(
+        self,
+        continuation: UnaryContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request: message.Message,
+    ) -> grpc.Call:
         return continuation(self._add_bearer_metadata(client_call_details), request)
 
-    def intercept_unary_stream(self, continuation, client_call_details, request):
+    def intercept_unary_stream(
+        self,
+        continuation: UnaryContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request: message.Message,
+    ) -> grpc.Call:
         return continuation(self._add_bearer_metadata(client_call_details), request)
 
     def intercept_stream_unary(
-        self, continuation, client_call_details, request_iterator
-    ):
+        self,
+        continuation: StreamContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request_iterator: Iterator[message.Message],
+    ) -> grpc.Call:
         return continuation(
             self._add_bearer_metadata(client_call_details), request_iterator
         )
 
     def intercept_stream_stream(
-        self, continuation, client_call_details, request_iterator
-    ):
+        self,
+        continuation: StreamContinuation,
+        client_call_details: grpc.ClientCallDetails,
+        request_iterator: Iterator[message.Message],
+    ) -> grpc.Call:
         return continuation(
             self._add_bearer_metadata(client_call_details), request_iterator
         )

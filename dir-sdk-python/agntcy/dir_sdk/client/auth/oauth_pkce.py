@@ -14,9 +14,8 @@ from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
-from authlib.oauth2.rfc7636 import create_s256_code_challenge
-
 from agntcy.dir_sdk.client.config import Config
+from authlib.oauth2.rfc7636 import create_s256_code_challenge
 
 logger = logging.getLogger(__name__)
 

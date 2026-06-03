@@ -5,16 +5,18 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 import grpc
-
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
 from agntcy.dir_sdk.models import events_v1
 
 
 class EventService(RpcServiceBase):
-    def __init__(self, event_client: events_v1.EventServiceStub, logger) -> None:
+    def __init__(
+        self, event_client: events_v1.EventServiceStub, logger: logging.Logger
+    ) -> None:
         super().__init__(logger)
         self._event_client = event_client
 

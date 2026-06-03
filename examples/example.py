@@ -1,13 +1,12 @@
 # Copyright AGNTCY Contributors (https://github.com/agntcy)
 # SPDX-License-Identifier: Apache-2.0
 
+from agntcy.dir_sdk.client import Client
+from agntcy.dir_sdk.models import core_v1, routing_v1, search_v1
 from google.protobuf.json_format import MessageToJson
 
-from agntcy.dir_sdk.client import Client
-from agntcy.dir_sdk.models import core_v1, search_v1, routing_v1
 
-
-def generate_record(name):
+def generate_record(name: str) -> core_v1.Record:
     return core_v1.Record(
         data={
             "name": name,

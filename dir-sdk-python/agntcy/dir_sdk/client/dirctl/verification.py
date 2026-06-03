@@ -5,15 +5,15 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
 
-from google.protobuf import json_format
-
 from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.dirctl.runner import run_dirctl
 from agntcy.dir_sdk.models import core_v1, sign_v1
+from google.protobuf import json_format
 
 
 def verify_record(config: Config, req: sign_v1.VerifyRequest) -> sign_v1.VerifyResponse:
@@ -27,10 +27,8 @@ def verify_record(config: Config, req: sign_v1.VerifyRequest) -> sign_v1.VerifyR
         _run_verify(config, req, output_path)
         return parse_verify_response(output_path)
     finally:
-        try:
+        with contextlib.suppress(OSError):
             os.unlink(output_path)
-        except OSError:
-            pass
 
 
 def _run_verify(config: Config, req: sign_v1.VerifyRequest, output_path: str) -> None:

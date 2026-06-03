@@ -3,15 +3,21 @@
 import os
 import pathlib
 import subprocess
-import time
 import threading
+import time
 import unittest
 import uuid
 
 import grpc
-
 from agntcy.dir_sdk.client import Client
-from agntcy.dir_sdk.models import *
+from agntcy.dir_sdk.models import (
+    core_v1,
+    events_v1,
+    routing_v1,
+    search_v1,
+    sign_v1,
+    store_v1,
+)
 
 
 class TestClient(unittest.TestCase):
@@ -305,8 +311,7 @@ class TestClient(unittest.TestCase):
             # Verification is asynchronous (reconciler caches results). Wait for it to run.
             time.sleep(8)
 
-            verify_index = 0
-            for ref in record_refs:
+            for verify_index, ref in enumerate(record_refs):
                 response = self.client.verify(
                     sign_v1.VerifyRequest(
                         record_ref=ref,
@@ -358,8 +363,6 @@ class TestClient(unittest.TestCase):
                         assert s_signer.oidc.issuer == r_signer.oidc.issuer
                         assert s_signer.oidc.subject == r_signer.oidc.subject
 
-                verify_index += 1
-
         except Exception as e:
             assert e is None, (
                 f"CID: {record_refs[0].cid} password: {key_provider.password} private_key: {key_provider.private_key}"
@@ -390,9 +393,9 @@ class TestClient(unittest.TestCase):
 
             try:
                 assert uuid.UUID(create_response.sync_id)
-            except ValueError:
+            except ValueError as e:
                 msg = f"Not an UUID: {create_response.sync_id}"
-                raise ValueError(msg)
+                raise ValueError(msg) from e
 
             list_request = store_v1.ListSyncsRequest()
             list_response = self.client.list_syncs(list_request)
@@ -401,9 +404,9 @@ class TestClient(unittest.TestCase):
                 try:
                     assert isinstance(sync_item, store_v1.ListSyncsItem)
                     assert uuid.UUID(sync_item.sync_id)
-                except ValueError:
+                except ValueError as e:
                     msg = f"Not an UUID: {sync_item.sync_id}"
-                    raise ValueError(msg)
+                    raise ValueError(msg) from e
 
             get_request = store_v1.GetSyncRequest(sync_id=create_response.sync_id)
             get_response = self.client.get_sync(get_request)
@@ -422,11 +425,11 @@ class TestClient(unittest.TestCase):
         listen_stream = self.client.listen(listen_request)
         events = []
 
-        def cancel_stream():
+        def cancel_stream() -> None:
             time.sleep(15)
             listen_stream.cancel()
 
-        def read_stream():
+        def read_stream() -> None:
             try:
                 for response in listen_stream:
                     events.append(response)
@@ -467,9 +470,9 @@ class TestClient(unittest.TestCase):
 
             try:
                 assert isinstance(create_response, routing_v1.CreatePublicationResponse)
-            except ValueError:
-                msg = f"Not a CreatePublicationResponse object."
-                raise ValueError(msg)
+            except ValueError as e:
+                msg = "Not a CreatePublicationResponse object."
+                raise ValueError(msg) from e
 
             list_request = routing_v1.ListPublicationsRequest(limit=3)
             list_response = self.client.list_publication(list_request)
@@ -477,9 +480,9 @@ class TestClient(unittest.TestCase):
             for publication_item in list_response:
                 try:
                     assert isinstance(publication_item, routing_v1.ListPublicationsItem)
-                except ValueError:
-                    msg = f"Not a ListPublicationsItem object."
-                    raise ValueError(msg)
+                except ValueError as e:
+                    msg = "Not a ListPublicationsItem object."
+                    raise ValueError(msg) from e
 
             get_request = routing_v1.GetPublicationRequest(
                 publication_id=create_response.publication_id
@@ -574,7 +577,7 @@ class TestClient(unittest.TestCase):
         return records
 
     @staticmethod
-    def cancel_stream_after_delay(responses, delay_sec=5):
+    def cancel_stream_after_delay(responses: grpc.Call, delay_sec: int = 5) -> None:
         # Wait before cancelling to simulate some condition or timeout
         time.sleep(delay_sec)
         print("Cancelling the stream...")

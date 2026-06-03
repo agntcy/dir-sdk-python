@@ -100,10 +100,7 @@ class TokenCache:
     def __init__(self, cache_dir: str | Path | None = None) -> None:
         if cache_dir is None:
             config_home = os.environ.get("XDG_CONFIG_HOME")
-            if config_home:
-                base_dir = Path(config_home)
-            else:
-                base_dir = Path.home() / ".config"
+            base_dir = Path(config_home) if config_home else Path.home() / ".config"
             self.cache_dir = base_dir / DEFAULT_TOKEN_CACHE_DIR
         else:
             self.cache_dir = Path(cache_dir)

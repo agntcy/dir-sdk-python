@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
@@ -15,7 +16,7 @@ class PublicationService(RpcServiceBase):
     def __init__(
         self,
         publication_client: routing_v1.PublicationServiceStub,
-        logger,
+        logger: logging.Logger,
     ) -> None:
         super().__init__(logger)
         self._publication_client = publication_client

@@ -10,14 +10,14 @@ import logging
 from collections.abc import Sequence
 
 import grpc
-
-from agntcy.dir_sdk.client.auth.session import OAuthSessionManager
-from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.auth.oauth_pkce import (
     OAuthTokenHolder,
     fetch_openid_configuration,
     run_loopback_pkce_login,
 )
+from agntcy.dir_sdk.client.auth.session import OAuthSessionManager
+from agntcy.dir_sdk.client.auth.token_cache import CachedToken, TokenCache
+from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.services.events import EventService
 from agntcy.dir_sdk.client.services.naming import NamingService
 from agntcy.dir_sdk.client.services.publication import PublicationService
@@ -26,7 +26,6 @@ from agntcy.dir_sdk.client.services.search import SearchService
 from agntcy.dir_sdk.client.services.signing import SignService
 from agntcy.dir_sdk.client.services.store import StoreService
 from agntcy.dir_sdk.client.services.sync import SyncService
-from agntcy.dir_sdk.client.auth.token_cache import CachedToken, TokenCache
 from agntcy.dir_sdk.client.transport.channels import create_grpc_channel
 from agntcy.dir_sdk.client.transport.interceptors import (
     BearerAuthInterceptor,

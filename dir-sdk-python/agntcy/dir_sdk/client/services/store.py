@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import builtins
+import logging
 from collections.abc import Sequence
 
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
@@ -13,7 +14,9 @@ from agntcy.dir_sdk.models import core_v1, store_v1
 
 
 class StoreService(RpcServiceBase):
-    def __init__(self, store_client: store_v1.StoreServiceStub, logger) -> None:
+    def __init__(
+        self, store_client: store_v1.StoreServiceStub, logger: logging.Logger
+    ) -> None:
         super().__init__(logger)
         self._store_client = store_client
 

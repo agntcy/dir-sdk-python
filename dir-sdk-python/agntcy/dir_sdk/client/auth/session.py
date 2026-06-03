@@ -7,13 +7,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.auth.oauth_pkce import (
     OAuthTokenHolder,
     fetch_openid_configuration,
     run_loopback_pkce_login,
 )
 from agntcy.dir_sdk.client.auth.token_cache import CachedToken, TokenCache
+from agntcy.dir_sdk.client.config import Config
 
 
 def cached_token_from_response(

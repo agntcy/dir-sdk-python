@@ -34,3 +34,6 @@ addopts = ["--import-mode=importlib"]
 
 [tool.ruff.lint]
 extend-select = ["ANN", "ARG", "ASYNC", "B", "I", "N", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"dir-sdk-python/agntcy/dir_sdk/models/*.py" = ["F403"]
