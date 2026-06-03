@@ -108,12 +108,13 @@ tasks:
       - "{{.UV_BIN}} sync --all-packages"
 
   sdk:lint:python:
-    desc: Lint Python SDK (ruff check + format check)
+    desc: Lint Python SDK (ruff check + format check + mypy)
     deps:
       - task: sdk:deps:python:packages
     cmds:
       - "{{.UV_BIN}} run ruff check dir-sdk-python examples"
       - "{{.UV_BIN}} run ruff format --check dir-sdk-python examples"
+      - "{{.UV_BIN}} run mypy dir-sdk-python examples"
 
   sdk:fix:python:
     desc: Auto-fix Python lint and formatting (local dev)
