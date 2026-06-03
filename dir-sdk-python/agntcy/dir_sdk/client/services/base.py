@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Iterable
-from typing import TypeVar
+from typing import TypeVar, cast
 
 import grpc
 
@@ -20,7 +20,7 @@ class RpcServiceBase:
 
     def _invoke(self, op_name: str, error_message: str, call: Callable[[], T]) -> T:
         try:
-            return call()
+            return cast(T, call())
         except grpc.RpcError as e:
             self._logger.exception("gRPC error during %s: %s", op_name, e)
             raise

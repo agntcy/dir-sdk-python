@@ -233,7 +233,7 @@ class OIDCAuthClientTests(unittest.TestCase):
 
             cached_token = TokenCache().load()
 
-        self.assertIsNotNone(cached_token)
+        assert cached_token is not None
         self.assertEqual(cached_token.access_token, "fresh-token")
         self.assertEqual(cached_token.refresh_token, "refresh-token")
         self.assertEqual(cached_token.provider, "oidc")

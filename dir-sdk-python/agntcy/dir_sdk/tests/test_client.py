@@ -206,7 +206,7 @@ class TestClient(unittest.TestCase):
             assert isinstance(r, store_v1.PushReferrerResponse)
 
         try:
-            request = [
+            pull_request = [
                 store_v1.PullReferrerRequest(
                     record_ref=record_refs[0],
                     referrer_type=sign_v1.Signature.DESCRIPTOR.full_name,
@@ -217,13 +217,13 @@ class TestClient(unittest.TestCase):
                 ),
             ]
 
-            response = self.client.pull_referrer(req=request)
+            pull_response = self.client.pull_referrer(req=pull_request)
 
-            assert response is not None
-            assert len(response) == 2
+            assert pull_response is not None
+            assert len(pull_response) == 2
 
-            for r in response:
-                assert isinstance(r, store_v1.PullReferrerResponse)
+            for pull_r in pull_response:
+                assert isinstance(pull_r, store_v1.PullReferrerResponse)
         except Exception as e:
             assert "pull referrer not implemented" in str(
                 e,
@@ -365,7 +365,7 @@ class TestClient(unittest.TestCase):
 
         except Exception as e:
             assert e is None, (
-                f"CID: {record_refs[0].cid} password: {key_provider.password} private_key: {key_provider.private_key}"
+                f"CID: {record_refs[0].cid} password: {key_provider.password!r} private_key: {key_provider.private_key}"
             )
         finally:
             pathlib.Path("cosign.key").unlink()
@@ -497,8 +497,8 @@ class TestClient(unittest.TestCase):
     def test_resolve(self) -> None:
         # Push a record using built-in generator
         records = self.gen_records(1, "resolve")
-        record_name = records[0].data["name"]
-        record_version = records[0].data["version"]
+        record_name = str(records[0].data["name"])
+        record_version = str(records[0].data["version"])
 
         record_refs = self.client.push(records=records)
         assert len(record_refs) == 1

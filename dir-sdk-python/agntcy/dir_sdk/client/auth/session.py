@@ -21,7 +21,7 @@ def cached_token_from_response(
 ) -> CachedToken:
     expires_at = None
     expires_in = payload.get("expires_in")
-    if expires_in is not None:
+    if isinstance(expires_in, (int, float, str)):
         expires_at = datetime.now(UTC) + timedelta(seconds=int(expires_in))
 
     refresh_token = payload.get("refresh_token")

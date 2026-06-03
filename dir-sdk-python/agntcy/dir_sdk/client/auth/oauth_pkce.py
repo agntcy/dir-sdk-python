@@ -10,7 +10,7 @@ import secrets
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Any
+from typing import Any, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
@@ -43,7 +43,7 @@ def fetch_openid_configuration(
     with httpx.Client(verify=verify, timeout=timeout) as client:
         response = client.get(url)
         response.raise_for_status()
-        data = response.json()
+        data = cast(dict[str, Any], response.json())
     if "authorization_endpoint" not in data or "token_endpoint" not in data:
         msg = "OpenID configuration missing authorization_endpoint or token_endpoint"
         raise OAuthPkceError(msg)
@@ -69,7 +69,7 @@ def _form_post(
             detail = response.text[:500] if response.text else ""
             msg = f"Token HTTP {response.status_code}: {detail}"
             raise OAuthPkceError(msg) from e
-        return response.json()
+        return cast(dict[str, Any], response.json())
 
 
 class OAuthTokenHolder:
@@ -98,7 +98,7 @@ class OAuthTokenHolder:
                     "or call Client.authenticate_oauth_pkce()"
                 )
                 raise RuntimeError(msg)
-            return self._access_token  # type: ignore[return-value]
+            return self._access_token
 
 
 def exchange_authorization_code(

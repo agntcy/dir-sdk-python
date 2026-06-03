@@ -45,7 +45,7 @@ class JWTAuthInterceptor(
 
     def _get_jwt_token(self) -> str:
         try:
-            jwt_svid = self._workload_client.fetch_jwt_svid(audience=[self._audience])
+            jwt_svid = self._workload_client.fetch_jwt_svid(audience={self._audience})
             if jwt_svid and jwt_svid.token:
                 return jwt_svid.token
             msg = "Failed to fetch JWT-SVID: empty token"

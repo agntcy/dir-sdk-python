@@ -88,9 +88,9 @@ def main() -> None:
     )
 
     list_request = routing_v1.ListRequest(queries=[query])
-    objects = list(client.list(list_request))
+    listed_objects = client.list(list_request)
 
-    for o in objects:
+    for o in listed_objects:
         print("Listed object:", MessageToJson(o))
 
     # Search objects
@@ -100,9 +100,9 @@ def main() -> None:
     )
 
     search_request = search_v1.SearchCIDsRequest(queries=[search_query], limit=3)
-    objects = list(client.search_cids(search_request))
+    search_results = client.search_cids(search_request)
 
-    print("Searched objects:", objects)
+    print("Searched objects:", search_results)
 
     # Unpublish the object
     record_refs = routing_v1.RecordRefs(refs=[refs[0]])

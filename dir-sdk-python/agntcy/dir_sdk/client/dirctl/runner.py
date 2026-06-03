@@ -35,7 +35,8 @@ def build_dirctl_base_command(
         raise RuntimeError(msg)
 
     docker_config = _copy_docker_config(config.docker_config)
-    docker_config.envs.update(env)
+    if env:
+        docker_config.envs.update(env)
     docker_config.mounts.extend(extra_mounts)
     return docker_config.get_commands()
 

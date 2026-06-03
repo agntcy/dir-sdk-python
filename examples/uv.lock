@@ -31,6 +31,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "mypy", specifier = "==2.1.0" },
+    { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pytest", specifier = ">=9.0.0" },
     { name = "ruff", specifier = "==0.15.15" },
     { name = "uuid", specifier = ">=1.30" },
