@@ -48,7 +48,10 @@ def run_dirctl(
     timeout: int = 60,
     extra_mounts: Sequence[str] | None = None,
 ) -> None:
-    command = [*build_dirctl_base_command(config, env=env, extra_mounts=extra_mounts), *args]
+    command = [
+        *build_dirctl_base_command(config, env=env, extra_mounts=extra_mounts),
+        *args,
+    ]
     shell_env = os.environ.copy()
     if env:
         shell_env.update(env)

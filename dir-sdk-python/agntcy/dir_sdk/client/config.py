@@ -59,7 +59,15 @@ class DockerConfig:
 
     def get_commands(self) -> list[str]:
         self.prune_mounts()
-        commands = ["docker", "container", "run", "--name=dir-ctl", "--rm", "--network", "host"]
+        commands = [
+            "docker",
+            "container",
+            "run",
+            "--name=dir-ctl",
+            "--rm",
+            "--network",
+            "host",
+        ]
         if self.user:
             commands.extend(["--user", self.user])
         for key, val in self.envs.items():

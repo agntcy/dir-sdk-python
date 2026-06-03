@@ -53,7 +53,9 @@ class OIDCAuthConfigTests(unittest.TestCase):
 
     def test_token_cache_uses_dirctl_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True):
+            with unittest.mock.patch.dict(
+                "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+            ):
                 cache = TokenCache()
 
         self.assertEqual(
@@ -129,16 +131,18 @@ class OIDCAuthClientTests(unittest.TestCase):
                 "provider": "oidc",
                 "issuer": "https://issuer.example.com",
                 "refresh_token": "cached-refresh-token",
-                "expires_at": (
-                    datetime.now(UTC) + timedelta(hours=1)
-                ).isoformat().replace("+00:00", "Z"),
+                "expires_at": (datetime.now(UTC) + timedelta(hours=1))
+                .isoformat()
+                .replace("+00:00", "Z"),
                 "created_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             }
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(payload, f)
 
             with (
-                unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True),
+                unittest.mock.patch.dict(
+                    "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+                ),
                 unittest.mock.patch(
                     "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
                 ) as fetch_mock,
@@ -161,7 +165,9 @@ class OIDCAuthClientTests(unittest.TestCase):
             oidc_client_id="client-id",
         )
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True):
+            with unittest.mock.patch.dict(
+                "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+            ):
                 client = Client(config)
 
                 with (
@@ -196,7 +202,9 @@ class OIDCAuthClientTests(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True):
+            with unittest.mock.patch.dict(
+                "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+            ):
                 client = Client(config)
                 with (
                     unittest.mock.patch(

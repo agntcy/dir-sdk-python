@@ -17,7 +17,9 @@ from agntcy.dir_sdk.models import sign_v1
 
 
 class SignService(RpcServiceBase):
-    def __init__(self, config: Config, sign_client: sign_v1.SignServiceStub, logger) -> None:
+    def __init__(
+        self, config: Config, sign_client: sign_v1.SignServiceStub, logger
+    ) -> None:
         super().__init__(logger)
         self._config = config
         self._sign_client = sign_client

@@ -16,7 +16,9 @@ from agntcy.dir_sdk.client.auth.oauth_pkce import (
 from agntcy.dir_sdk.client.auth.token_cache import CachedToken, TokenCache
 
 
-def cached_token_from_response(config: Config, payload: dict[str, object]) -> CachedToken:
+def cached_token_from_response(
+    config: Config, payload: dict[str, object]
+) -> CachedToken:
     expires_at = None
     expires_in = payload.get("expires_in")
     if expires_in is not None:

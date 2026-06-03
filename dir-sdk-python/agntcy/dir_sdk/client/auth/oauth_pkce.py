@@ -184,7 +184,9 @@ def run_loopback_pkce_login(
             try:
                 req = urlparse(self.path)
                 if req.path != path:
-                    error_holder.append("redirect path does not match oidc_redirect_uri")
+                    error_holder.append(
+                        "redirect path does not match oidc_redirect_uri"
+                    )
                     self.send_error(404, "Not Found")
                     return
                 qs = parse_qs(req.query)
@@ -213,9 +215,7 @@ def run_loopback_pkce_login(
 
         def _ok_page(self, message: str) -> None:
             body = (
-                "<!DOCTYPE html><html><body><p>"
-                + message
-                + "</p></body></html>"
+                "<!DOCTYPE html><html><body><p>" + message + "</p></body></html>"
             ).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")

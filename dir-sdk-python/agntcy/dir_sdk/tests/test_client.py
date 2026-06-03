@@ -71,9 +71,11 @@ class TestClient(unittest.TestCase):
     def test_list(self) -> None:
         records = self.gen_records(1, "list")
         record_refs = self.client.push(records=records)
-        self.client.publish(routing_v1.PublishRequest(
-            record_refs=routing_v1.RecordRefs(refs=record_refs),
-        ))
+        self.client.publish(
+            routing_v1.PublishRequest(
+                record_refs=routing_v1.RecordRefs(refs=record_refs),
+            )
+        )
 
         # Sleep to allow the publication to be indexed
         time.sleep(5)
@@ -144,20 +146,16 @@ class TestClient(unittest.TestCase):
                     type=sign_v1.Signature.DESCRIPTOR.full_name,
                     data={
                         "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                        "annotations": {
-                            "payload": "test-payload-data"
-                        }
-                    }
+                        "annotations": {"payload": "test-payload-data"},
+                    },
                 ),
                 store_v1.PushReferrerRequest(
                     record_ref=record_refs[1],
                     type=sign_v1.Signature.DESCRIPTOR.full_name,
                     data={
                         "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                        "annotations": {
-                            "payload": "test-payload-data"
-                        }
-                    }
+                        "annotations": {"payload": "test-payload-data"},
+                    },
                 ),
             ]
 
@@ -183,20 +181,16 @@ class TestClient(unittest.TestCase):
                 type=sign_v1.Signature.DESCRIPTOR.full_name,
                 data={
                     "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                    "annotations": {
-                        "payload": "test-payload-data"
-                    }
-                }
+                    "annotations": {"payload": "test-payload-data"},
+                },
             ),
             store_v1.PushReferrerRequest(
                 record_ref=record_refs[1],
                 type=sign_v1.Signature.DESCRIPTOR.full_name,
                 data={
                     "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                    "annotations": {
-                        "payload": "test-payload-data"
-                    }
-                }
+                    "annotations": {"payload": "test-payload-data"},
+                },
             ),
         ]
         response = self.client.push_referrer(req=request)
@@ -261,8 +255,12 @@ class TestClient(unittest.TestCase):
         if docker_config:
             cosign_key_path = pathlib.Path("cosign.key").absolute()
             cosign_pub_path = pathlib.Path("cosign.pub").absolute()
-            docker_config.mounts.append(f"type=bind,src={cosign_key_path},dst=/cosign.key")
-            docker_config.mounts.append(f"type=bind,src={cosign_pub_path},dst=/cosign.pub")
+            docker_config.mounts.append(
+                f"type=bind,src={cosign_key_path},dst=/cosign.key"
+            )
+            docker_config.mounts.append(
+                f"type=bind,src={cosign_pub_path},dst=/cosign.pub"
+            )
 
         # Prepare Key signing request using file path reference
         # The CLI will load the key from the file path directly
@@ -282,7 +280,9 @@ class TestClient(unittest.TestCase):
         provider_url = shell_env.get("OIDC_PROVIDER_URL", "")
         client_id = shell_env.get("OIDC_CLIENT_ID", "sigstore")
 
-        sign_oidc_options = sign_v1.SignOptionsOIDC(oidc_provider_url=provider_url, oidc_client_id=client_id)
+        sign_oidc_options = sign_v1.SignOptionsOIDC(
+            oidc_provider_url=provider_url, oidc_client_id=client_id
+        )
         oidc_provider = sign_v1.SignWithOIDC(id_token=token, options=sign_oidc_options)
         request_oidc_provider = sign_v1.SignRequestProvider(oidc=oidc_provider)
         oidc_request = sign_v1.SignRequest(
@@ -307,7 +307,14 @@ class TestClient(unittest.TestCase):
 
             verify_index = 0
             for ref in record_refs:
-                response = self.client.verify(sign_v1.VerifyRequest(record_ref=ref, provider=sign_v1.VerifyRequestProvider(any=sign_v1.VerifyWithAny(oidc_options=verify_oidc_options))))
+                response = self.client.verify(
+                    sign_v1.VerifyRequest(
+                        record_ref=ref,
+                        provider=sign_v1.VerifyRequestProvider(
+                            any=sign_v1.VerifyWithAny(oidc_options=verify_oidc_options)
+                        ),
+                    )
+                )
 
                 assert response.success is True
 
@@ -318,14 +325,18 @@ class TestClient(unittest.TestCase):
                 # For the first record (key-signed), verify key signer info
                 if verify_index == 0:
                     signer = response.signers[0]
-                    assert signer.HasField("key"), "Expected key signer info for key-signed record"
+                    assert signer.HasField("key"), (
+                        "Expected key signer info for key-signed record"
+                    )
                     assert signer.key.public_key, "Expected public key in signer info"
                     assert signer.key.algorithm, "Expected algorithm in signer info"
 
                 # For OIDC-signed record, verify OIDC signer info
                 if verify_index == 1 and token and provider_url:
                     signer = response.signers[0]
-                    assert signer.HasField("oidc"), "Expected OIDC signer info for OIDC-signed record"
+                    assert signer.HasField("oidc"), (
+                        "Expected OIDC signer info for OIDC-signed record"
+                    )
                     assert signer.oidc.issuer, "Expected issuer in OIDC signer info"
                     assert signer.oidc.subject, "Expected subject in OIDC signer info"
 
@@ -350,7 +361,9 @@ class TestClient(unittest.TestCase):
                 verify_index += 1
 
         except Exception as e:
-            assert e is None, f"CID: {record_refs[0].cid} password: {key_provider.password} private_key: {key_provider.private_key}"
+            assert e is None, (
+                f"CID: {record_refs[0].cid} password: {key_provider.password} private_key: {key_provider.private_key}"
+            )
         finally:
             pathlib.Path("cosign.key").unlink()
             pathlib.Path("cosign.pub").unlink()
@@ -468,7 +481,9 @@ class TestClient(unittest.TestCase):
                     msg = f"Not a ListPublicationsItem object."
                     raise ValueError(msg)
 
-            get_request = routing_v1.GetPublicationRequest(publication_id=create_response.publication_id)
+            get_request = routing_v1.GetPublicationRequest(
+                publication_id=create_response.publication_id
+            )
             get_response = self.client.get_publication(get_request)
 
             assert isinstance(get_response, routing_v1.GetPublicationResponse)
@@ -495,7 +510,9 @@ class TestClient(unittest.TestCase):
         assert resolve_response.records[0].version == record_version
 
         # Resolve by name with version
-        resolve_with_version_response = self.client.resolve(name=record_name, version=record_version)
+        resolve_with_version_response = self.client.resolve(
+            name=record_name, version=record_version
+        )
 
         assert resolve_with_version_response is not None
         assert len(resolve_with_version_response.records) == 1
@@ -512,7 +529,10 @@ class TestClient(unittest.TestCase):
         assert verify_response is not None
         # Unsigned records should return verified=false
         assert verify_response.verified is False
-        assert verify_response.error_message is not None or verify_response.error_message == ""
+        assert (
+            verify_response.error_message is not None
+            or verify_response.error_message == ""
+        )
 
     def gen_records(self, count: int, test_function_name: str) -> list[core_v1.Record]:
         """
@@ -531,26 +551,21 @@ class TestClient(unittest.TestCase):
                     "skills": [
                         {
                             "name": "natural_language_processing/natural_language_generation/text_completion",
-                            "id": 10201
+                            "id": 10201,
                         },
                         {
                             "name": "natural_language_processing/analytical_reasoning/problem_solving",
-                            "id": 10702
-                        }
+                            "id": 10702,
+                        },
                     ],
                     "locators": [
                         {
                             "type": "docker_image",
-                            "url": "https://ghcr.io/agntcy/marketing-strategy"
+                            "url": "https://ghcr.io/agntcy/marketing-strategy",
                         }
                     ],
-                    "domains": [
-                        {
-                            "name": "technology/networking",
-                            "id": 103
-                        }
-                    ],
-                    "modules": []
+                    "domains": [{"name": "technology/networking", "id": 103}],
+                    "modules": [],
                 }
             )
             for index in range(count)

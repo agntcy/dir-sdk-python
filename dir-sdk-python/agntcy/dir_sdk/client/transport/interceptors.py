@@ -56,11 +56,19 @@ class JWTAuthInterceptor(
     def intercept_unary_stream(self, continuation, client_call_details, request):
         return continuation(self._add_jwt_metadata(client_call_details), request)
 
-    def intercept_stream_unary(self, continuation, client_call_details, request_iterator):
-        return continuation(self._add_jwt_metadata(client_call_details), request_iterator)
+    def intercept_stream_unary(
+        self, continuation, client_call_details, request_iterator
+    ):
+        return continuation(
+            self._add_jwt_metadata(client_call_details), request_iterator
+        )
 
-    def intercept_stream_stream(self, continuation, client_call_details, request_iterator):
-        return continuation(self._add_jwt_metadata(client_call_details), request_iterator)
+    def intercept_stream_stream(
+        self, continuation, client_call_details, request_iterator
+    ):
+        return continuation(
+            self._add_jwt_metadata(client_call_details), request_iterator
+        )
 
 
 class BearerAuthInterceptor(
@@ -85,8 +93,16 @@ class BearerAuthInterceptor(
     def intercept_unary_stream(self, continuation, client_call_details, request):
         return continuation(self._add_bearer_metadata(client_call_details), request)
 
-    def intercept_stream_unary(self, continuation, client_call_details, request_iterator):
-        return continuation(self._add_bearer_metadata(client_call_details), request_iterator)
+    def intercept_stream_unary(
+        self, continuation, client_call_details, request_iterator
+    ):
+        return continuation(
+            self._add_bearer_metadata(client_call_details), request_iterator
+        )
 
-    def intercept_stream_stream(self, continuation, client_call_details, request_iterator):
-        return continuation(self._add_bearer_metadata(client_call_details), request_iterator)
+    def intercept_stream_stream(
+        self, continuation, client_call_details, request_iterator
+    ):
+        return continuation(
+            self._add_bearer_metadata(client_call_details), request_iterator
+        )
