@@ -57,6 +57,21 @@ jobs:
             echo "code=${{ steps.filter.outputs.code }}" >> $GITHUB_OUTPUT
           fi
 
+  lint:
+    name: Lint
+    needs: [changes]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Task
+        uses: go-task/setup-task@01a4adf9db2d14c1de7a560f09170b6e0df736aa # v2.1.0
+
+      - name: Lint Python SDK
+        run: task sdk:lint:python
+
   test:
     name: Test
     needs:
@@ -79,6 +94,7 @@ jobs:
     if: ${{ !cancelled() && !contains(needs.*.result, 'cancelled') && !contains(needs.*.result, 'failure') }}
     needs:
       - changes
+      - lint
       - test
       - release
     runs-on: ubuntu-latest

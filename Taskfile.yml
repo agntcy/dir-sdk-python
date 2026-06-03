@@ -99,6 +99,30 @@ tasks:
     cmds:
       - "{{.UV_BIN}} sync --all-packages"
 
+  sdk:deps:python:packages:
+    desc: Install Python package dependencies (uv sync only)
+    internal: true
+    deps:
+      - task: deps:uv
+    cmds:
+      - "{{.UV_BIN}} sync --all-packages"
+
+  sdk:lint:python:
+    desc: Lint Python SDK (ruff check + format check)
+    deps:
+      - task: sdk:deps:python:packages
+    cmds:
+      - "{{.UV_BIN}} run ruff check dir-sdk-python examples"
+      - "{{.UV_BIN}} run ruff format --check dir-sdk-python examples"
+
+  sdk:fix:python:
+    desc: Auto-fix Python lint and formatting (local dev)
+    deps:
+      - task: sdk:deps:python:packages
+    cmds:
+      - "{{.UV_BIN}} run ruff check --fix dir-sdk-python examples"
+      - "{{.UV_BIN}} run ruff format dir-sdk-python examples"
+
   sdk:tidy:
     desc: Install deps for SDK packages
     cmds:
