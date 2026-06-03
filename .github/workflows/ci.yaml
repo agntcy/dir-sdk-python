@@ -70,7 +70,7 @@ jobs:
         uses: go-task/setup-task@01a4adf9db2d14c1de7a560f09170b6e0df736aa # v2.1.0
 
       - name: Lint Python SDK
-        run: task sdk:lint:python
+        run: task lint
 
   test:
     name: Test
