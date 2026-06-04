@@ -5,8 +5,8 @@ description = "Directory SDK"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "agntcy-dir-grpc-python==1.78.0.1.20260505171211+963d5edc7bb0",            # v1.3.0
-    "agntcy-dir-protocolbuffers-python==34.0.0.1.20260505171211+963d5edc7bb0", # v1.3.0
+    "agntcy-dir-grpc-python==1.81.0.1.20260528135443+85b61b2b84a9",            # v1.4.0
+    "agntcy-dir-protocolbuffers-python==35.0.0.1.20260528135443+85b61b2b84a9", # v1.4.0
     "authlib>=1.6.9",
     "httpx>=0.28.1",
     "grpcio>=1.78.0",

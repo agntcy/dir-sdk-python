@@ -4,8 +4,8 @@
 version: "3"
 
 vars:
-  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "0.0.0-latest" }}'
-  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "latest" }}'
+  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.4.0" }}'
+  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.4.0" }}'
   RENOVATE_VERSION: "43.89.5"
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
   HELM_VERSION: "4.1.3"

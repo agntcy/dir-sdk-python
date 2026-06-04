@@ -7,13 +7,13 @@ on:
   workflow_call:
     inputs:
       dir_chart_version:
-        required: true
+        required: false
         type: string
-        description: "The version of the dir Helm chart to install for the tests."
+        description: "Override the version of the dir Helm chart to install for the tests."
       dirctl_image_tag:
-        required: true
+        required: false
         type: string
-        description: "The tag of the dir-ctl Docker image to use in the tests."
+        description: "Override the tag of the dir-ctl Docker image to use in the tests."
 
 permissions:
   id-token: write
