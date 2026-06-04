@@ -8,6 +8,7 @@ dependencies = [
 ]
 
 [[tool.uv.index]]
+name = "buf"
 url = "https://buf.build/gen/python"
 
 [tool.uv.sources]

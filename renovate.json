@@ -50,6 +50,18 @@
   },
   "packageRules": [
     {
+      "description": [
+        "Buf Schema Registry Python SDKs are not on PyPI; use Buf index and skip release-age gate (Buf simple API has no timestamps)."
+      ],
+      "matchDatasources": ["pypi"],
+      "matchPackageNames": [
+        "agntcy-dir-grpc-python",
+        "agntcy-dir-protocolbuffers-python"
+      ],
+      "registryUrls": ["https://buf.build/gen/python"],
+      "minimumReleaseAge": null
+    },
+    {
       "matchUpdateTypes": ["major"],
       "enabled": false,
       "description": ["Ignore major dependency updates."]
