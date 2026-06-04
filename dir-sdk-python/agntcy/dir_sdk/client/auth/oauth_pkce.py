@@ -10,13 +10,12 @@ import secrets
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Any
+from typing import Any, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
-from authlib.oauth2.rfc7636 import create_s256_code_challenge
-
 from agntcy.dir_sdk.client.config import Config
+from authlib.oauth2.rfc7636 import create_s256_code_challenge
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ def fetch_openid_configuration(
     with httpx.Client(verify=verify, timeout=timeout) as client:
         response = client.get(url)
         response.raise_for_status()
-        data = response.json()
+        data = cast(dict[str, Any], response.json())
     if "authorization_endpoint" not in data or "token_endpoint" not in data:
         msg = "OpenID configuration missing authorization_endpoint or token_endpoint"
         raise OAuthPkceError(msg)
@@ -70,7 +69,7 @@ def _form_post(
             detail = response.text[:500] if response.text else ""
             msg = f"Token HTTP {response.status_code}: {detail}"
             raise OAuthPkceError(msg) from e
-        return response.json()
+        return cast(dict[str, Any], response.json())
 
 
 class OAuthTokenHolder:
@@ -99,7 +98,7 @@ class OAuthTokenHolder:
                     "or call Client.authenticate_oauth_pkce()"
                 )
                 raise RuntimeError(msg)
-            return self._access_token  # type: ignore[return-value]
+            return self._access_token
 
 
 def exchange_authorization_code(
@@ -184,7 +183,9 @@ def run_loopback_pkce_login(
             try:
                 req = urlparse(self.path)
                 if req.path != path:
-                    error_holder.append("redirect path does not match oidc_redirect_uri")
+                    error_holder.append(
+                        "redirect path does not match oidc_redirect_uri"
+                    )
                     self.send_error(404, "Not Found")
                     return
                 qs = parse_qs(req.query)
@@ -213,9 +214,7 @@ def run_loopback_pkce_login(
 
         def _ok_page(self, message: str) -> None:
             body = (
-                "<!DOCTYPE html><html><body><p>"
-                + message
-                + "</p></body></html>"
+                "<!DOCTYPE html><html><body><p>" + message + "</p></body></html>"
             ).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")

@@ -8,15 +8,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import grpc
-from cryptography.hazmat.primitives import serialization
-from spiffe import WorkloadApiClient, X509Source
-
-from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.auth.oauth_pkce import OAuthTokenHolder
+from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.transport.interceptors import (
     BearerAuthInterceptor,
     JWTAuthInterceptor,
 )
+from cryptography.hazmat.primitives import serialization
+from spiffe import WorkloadApiClient, X509Source
 
 
 def grpc_channel_options(config: Config) -> list[tuple[str, str]]:

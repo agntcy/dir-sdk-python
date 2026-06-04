@@ -1,13 +1,12 @@
 # Copyright AGNTCY Contributors (https://github.com/agntcy)
 # SPDX-License-Identifier: Apache-2.0
 
+from agntcy.dir_sdk.client import Client
+from agntcy.dir_sdk.models import core_v1, routing_v1, search_v1
 from google.protobuf.json_format import MessageToJson
 
-from agntcy.dir_sdk.client import Client
-from agntcy.dir_sdk.models import core_v1, search_v1, routing_v1
 
-
-def generate_record(name):
+def generate_record(name: str) -> core_v1.Record:
     return core_v1.Record(
         data={
             "name": name,
@@ -19,25 +18,20 @@ def generate_record(name):
             "skills": [
                 {
                     "name": "natural_language_processing/natural_language_generation/text_completion",
-                    "id": 10201
+                    "id": 10201,
                 },
                 {
                     "name": "natural_language_processing/analytical_reasoning/problem_solving",
-                    "id": 10702
-                }
+                    "id": 10702,
+                },
             ],
             "locators": [
                 {
                     "type": "docker_image",
-                    "url": "https://ghcr.io/agntcy/marketing-strategy"
+                    "url": "https://ghcr.io/agntcy/marketing-strategy",
                 }
             ],
-            "domains": [
-                {
-                    "name": "technology/networking",
-                    "id": 103
-                }
-            ],
+            "domains": [{"name": "technology/networking", "id": 103}],
             "modules": [
                 {
                     "name": "integration/a2a",
@@ -46,19 +40,14 @@ def generate_record(name):
                         "protocol_version": "lightweight orchestra moral",
                         "card_data": "centres",
                         "capabilities": [
-                        "state_transition_history",
-                        "push_notifications"
+                            "state_transition_history",
+                            "push_notifications",
                         ],
-                        "transports": [
-                        "grpc",
-                        "http"
-                        ],
-                        "output_modes": [
-                        "text/html"
-                        ]
-                    }
+                        "transports": ["grpc", "http"],
+                        "output_modes": ["text/html"],
+                    },
                 }
-            ]
+            ],
         },
     )
 
@@ -99,20 +88,21 @@ def main() -> None:
     )
 
     list_request = routing_v1.ListRequest(queries=[query])
-    objects = list(client.list(list_request))
+    listed_objects = client.list(list_request)
 
-    for o in objects:
+    for o in listed_objects:
         print("Listed object:", MessageToJson(o))
 
     # Search objects
     search_query = search_v1.RecordQuery(
-        type=search_v1.RECORD_QUERY_TYPE_VERSION, value="v1.*",
+        type=search_v1.RECORD_QUERY_TYPE_VERSION,
+        value="v1.*",
     )
 
     search_request = search_v1.SearchCIDsRequest(queries=[search_query], limit=3)
-    objects = list(client.search_cids(search_request))
+    search_results = client.search_cids(search_request)
 
-    print("Searched objects:",objects)
+    print("Searched objects:", search_results)
 
     # Unpublish the object
     record_refs = routing_v1.RecordRefs(refs=[refs[0]])

@@ -5,15 +5,15 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
 
-from google.protobuf import json_format
-
 from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.dirctl.runner import run_dirctl
 from agntcy.dir_sdk.models import core_v1, sign_v1
+from google.protobuf import json_format
 
 
 def verify_record(config: Config, req: sign_v1.VerifyRequest) -> sign_v1.VerifyResponse:
@@ -27,10 +27,8 @@ def verify_record(config: Config, req: sign_v1.VerifyRequest) -> sign_v1.VerifyR
         _run_verify(config, req, output_path)
         return parse_verify_response(output_path)
     finally:
-        try:
+        with contextlib.suppress(OSError):
             os.unlink(output_path)
-        except OSError:
-            pass
 
 
 def _run_verify(config: Config, req: sign_v1.VerifyRequest, output_path: str) -> None:
@@ -42,13 +40,31 @@ def _run_verify(config: Config, req: sign_v1.VerifyRequest, output_path: str) ->
         effective_output_path = f"/{basename}"
 
     provider = req.provider
-    
+
     if provider.HasField("key"):
-        _verify_with_key(config, req.record_ref, provider.key, effective_output_path, extra_mounts=extra_mounts)
+        _verify_with_key(
+            config,
+            req.record_ref,
+            provider.key,
+            effective_output_path,
+            extra_mounts=extra_mounts,
+        )
     elif provider.HasField("oidc"):
-        _verify_with_oidc(config, req.record_ref, provider.oidc, effective_output_path, extra_mounts=extra_mounts)
+        _verify_with_oidc(
+            config,
+            req.record_ref,
+            provider.oidc,
+            effective_output_path,
+            extra_mounts=extra_mounts,
+        )
     elif provider.HasField("any"):
-        _verify_with_any(config, req.record_ref, provider.any, effective_output_path, extra_mounts=extra_mounts)
+        _verify_with_any(
+            config,
+            req.record_ref,
+            provider.any,
+            effective_output_path,
+            extra_mounts=extra_mounts,
+        )
     else:
         msg = "Unsupported verification provider in request"
         raise RuntimeError(msg)
@@ -64,7 +80,14 @@ def _verify_with_key(
 ) -> None:
     run_dirctl(
         config,
-        ["verify", record_ref.cid, "--key", key_verifier.public_key, "--output-file", output_path],
+        [
+            "verify",
+            record_ref.cid,
+            "--key",
+            key_verifier.public_key,
+            "--output-file",
+            output_path,
+        ],
         extra_mounts=extra_mounts,
         env={"DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address},
     )
@@ -91,7 +114,12 @@ def _verify_with_any(
             command.append("--ignore-tsa")
         if opts.ignore_sct:
             command.append("--ignore-sct")
-    run_dirctl(config, command, extra_mounts=extra_mounts, env={"DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address})
+    run_dirctl(
+        config,
+        command,
+        extra_mounts=extra_mounts,
+        env={"DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address},
+    )
 
 
 def _verify_with_oidc(
@@ -120,18 +148,23 @@ def _verify_with_oidc(
                 command.append("--ignore-tsa")
             if opts.ignore_sct:
                 command.append("--ignore-sct")
-    run_dirctl(config, command, extra_mounts=extra_mounts, env={"DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address})
+    run_dirctl(
+        config,
+        command,
+        extra_mounts=extra_mounts,
+        env={"DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address},
+    )
 
 
 def parse_verify_response(output_path: str) -> sign_v1.VerifyResponse:
     try:
         with open(output_path, "rb") as f:
             output = f.read().decode("utf-8")
-       
+
         json_data = json.loads(output)
         response = sign_v1.VerifyResponse()
         json_format.ParseDict(json_data, response)
-        
+
         return response
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         msg = f"Failed to parse verification response: {e}"

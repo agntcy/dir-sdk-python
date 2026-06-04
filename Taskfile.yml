@@ -26,49 +26,33 @@ tasks:
   # SDK tasks (top-level, user-facing)
   # ---------------------------------------------------------------------------
 
-  sdk:deps:cicd:iodc-token-generation:
-    desc: Get Fulcio OIDC token for CICD
-    requires:
-      vars: [CLIENT_ID]
-    cmds:
-      - |
-        OIDC_TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-           "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore" | jq -r '.value')
-
-        CLIENT_ID="{{.CLIENT_ID}}"
-        PROVIDER_URL="https://token.actions.githubusercontent.com"
-
-        echo "OIDC_PROVIDER_URL=${PROVIDER_URL}"
-        echo "CLIENT_ID=${CLIENT_ID}"
-        echo "OIDC_TOKEN=${OIDC_TOKEN}"
-
-  sdk:build:python:
+  build:
     desc: Build python client SDK package
     deps:
-      - task: sdk:deps:python
+      - task: deps
     cmds:
       - "{{.UV_BIN}} build"
 
-  sdk:test-env:create:
+  test-env:create:
     desc: Create Kubernetes cluster test environment
     cmds:
-      - task: test-env:kubernetes:local
+      - task: test-env:deploy
         vars:
           DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL: 1s
           DIRECTORY_SERVER_OASF_API_VALIDATION_SCHEMA_URL: "https://schema.oasf.outshift.com"
 
-  sdk:test-env:delete:
+  test-env:delete:
     desc: Delete Kubernetes cluster test environment
     cmds:
-      - task: test-env:kubernetes:local:cleanup
+      - task: test-env:deploy:cleanup
 
   sdk:test:python:
     desc: Test python client SDK package
     deps:
-      - task: sdk:deps:python
+      - task: deps
     cmds:
-      - defer: { task: sdk:test-env:delete }
-      - task: sdk:test-env:create
+      - defer: { task: test-env:delete }
+      - task: test-env:create
       - |
         export DIRCTL_IMAGE_TAG="{{ .DIRCTL_IMAGE_TAG }}"
         export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
@@ -81,7 +65,7 @@ tasks:
         '{{ .UV_BIN }}' sync
         '{{ .UV_BIN }}' run python example.py
 
-  sdk:deps:python:
+  deps:
     desc: Install deps for python SDK package
     deps:
       - task: deps:uv
@@ -90,7 +74,7 @@ tasks:
     cmds:
       - "{{.UV_BIN}} sync --all-packages"
 
-  sdk:deps:python:example:
+  deps:example:
     desc: Install deps for Python SDK example package
     internal: true
     dir: ./examples
@@ -99,13 +83,38 @@ tasks:
     cmds:
       - "{{.UV_BIN}} sync --all-packages"
 
-  sdk:tidy:
+  deps:packages:
+    desc: Install Python package dependencies (uv sync only)
+    internal: true
+    deps:
+      - task: deps:uv
+    cmds:
+      - "{{.UV_BIN}} sync --all-packages"
+
+  lint:
+    desc: Lint Python SDK (ruff check + format check + mypy)
+    deps:
+      - task: deps:packages
+    cmds:
+      - "{{.UV_BIN}} run ruff check dir-sdk-python examples"
+      - "{{.UV_BIN}} run ruff format --check dir-sdk-python examples"
+      - "{{.UV_BIN}} run mypy dir-sdk-python examples"
+
+  lint:fix:
+    desc: Auto-fix Python lint and formatting (local dev)
+    deps:
+      - task: deps:packages
+    cmds:
+      - "{{.UV_BIN}} run ruff check --fix dir-sdk-python examples"
+      - "{{.UV_BIN}} run ruff format dir-sdk-python examples"
+
+  deps:tidy:
     desc: Install deps for SDK packages
     cmds:
-      - task: sdk:deps:python
-      - task: sdk:deps:python:example
+      - task: deps
+      - task: deps:example
 
-  sdk:release:python:
+  release:
     desc: Release python client SDK package
     env:
       UV_PUBLISH_TOKEN: "{{ .UV_PUBLISH_TOKEN }}"
@@ -124,7 +133,7 @@ tasks:
   # Test environment (kind cluster + helm deploy of dir-server)
   # ---------------------------------------------------------------------------
 
-  test-env:kubernetes:setup-cluster:
+  test-env:setup-cluster:
     desc: Create a kind cluster and load Docker images
     deps:
       - deps:helm
@@ -162,11 +171,11 @@ tasks:
         {{ .KIND_BIN }} export kubeconfig --name {{ .KIND_CLUSTER_NAME }}
         {{ .KUBECTL_BIN }} cluster-info
 
-  test-env:kubernetes:local:
+  test-env:deploy:
     aliases: [deploy:local]
     desc: Deploy a local Directory server in Kubernetes
     deps:
-      - task: test-env:kubernetes:setup-cluster
+      - task: test-env:setup-cluster
         vars:
           KIND_EXTRA_PORT_MAPPING: "{{.API_HOSTPORT}}:{{.API_NODEPORT}},{{.METRICS_HOSTPORT}}:{{.METRICS_NODEPORT}}"
     vars:
@@ -184,11 +193,11 @@ tasks:
       # TODO: make logic idempotent so that running functional tests does not change previous contexts
 
       # Generate credentials and htpasswd file (using defaults)
-      - task: test-env:kubernetes:gen-htpasswd-creds
+      - task: test-env:htpasswd-creds:gen
 
       # Cleanup credentials on exit (using defaults)
       - defer:
-          task: test-env:kubernetes:cleanup-htpasswd-creds
+          task: test-env:htpasswd-creds:cleanup
 
       # Deploy chart
       - |
@@ -226,7 +235,7 @@ tasks:
           --wait-for-jobs \
           --timeout "15m"
 
-  test-env:kubernetes:local:cleanup:
+  test-env:deploy:cleanup:
     desc: Cleanup Kubernetes environment for local deployment
     deps:
       - deps:kind
@@ -235,7 +244,7 @@ tasks:
     cmds:
       - "{{ .KIND_BIN }} delete cluster --name {{ .KIND_CLUSTER_NAME }}"
 
-  test-env:kubernetes:gen-htpasswd-creds:
+  test-env:htpasswd-creds:gen:
     desc: Generate htpasswd credentials and files for DIR deployment
     vars:
       HTPASSWD_USERNAME: '{{ .HTPASSWD_USERNAME | default "apiserver" }}'
@@ -268,7 +277,7 @@ tasks:
         {{ .HTPASSWD_SYNC_USERNAME }}:${HTPASSWD_SYNC}
         EOF
 
-  test-env:kubernetes:cleanup-htpasswd-creds:
+  test-env:htpasswd-creds:cleanup:
     desc: Cleanup htpasswd credentials and files
     vars:
       CREDS_FILE: '{{ .CREDS_FILE | default "/tmp/dir-htpasswd-creds.env" }}'
@@ -389,9 +398,25 @@ tasks:
       RENOVATE_OPTS_DEFAULT: >-
         --persist-repo-data 'true'
         --allowed-post-upgrade-commands '[".*"]'
-        --post-upgrade-tasks '{"commands": ["task sdk:tidy"], "executionMode": "branch"}'
+        --post-upgrade-tasks '{"commands": ["task deps:tidy"], "executionMode": "branch"}'
       RENOVATE_OPTS: "{{ .RENOVATE_OPTS | default .RENOVATE_OPTS_DEFAULT }}"
       RENOVATE_PLATFORM_EFFECTIVE:
         sh: printf '%s' "${RENOVATE_PLATFORM:-local}"
     cmds:
       - renovate {{ .RENOVATE_OPTS }} --platform "{{ .RENOVATE_PLATFORM_EFFECTIVE }}"
+
+  deps:cicd:iodc-token-generation:
+    desc: Get Fulcio OIDC token for CICD
+    requires:
+      vars: [CLIENT_ID]
+    cmds:
+      - |
+        OIDC_TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+           "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore" | jq -r '.value')
+
+        CLIENT_ID="{{.CLIENT_ID}}"
+        PROVIDER_URL="https://token.actions.githubusercontent.com"
+
+        echo "OIDC_PROVIDER_URL=${PROVIDER_URL}"
+        echo "CLIENT_ID=${CLIENT_ID}"
+        echo "OIDC_TOKEN=${OIDC_TOKEN}"

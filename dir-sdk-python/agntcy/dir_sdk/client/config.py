@@ -42,8 +42,8 @@ class DockerConfig:
         self,
         dirctl_image: str = DEFAULT_DIRCTL_IMAGE,
         dirctl_image_tag: str = DEFAULT_DIRCTL_IMAGE_TAG,
-        envs: dict[str, str] = None,
-        mounts: list[str] = None,
+        envs: dict[str, str] | None = None,
+        mounts: list[str] | None = None,
         user: str | None = None,
     ) -> None:
         if envs is None:
@@ -59,7 +59,15 @@ class DockerConfig:
 
     def get_commands(self) -> list[str]:
         self.prune_mounts()
-        commands = ["docker", "container", "run", "--name=dir-ctl", "--rm", "--network", "host"]
+        commands = [
+            "docker",
+            "container",
+            "run",
+            "--name=dir-ctl",
+            "--rm",
+            "--network",
+            "host",
+        ]
         if self.user:
             commands.extend(["--user", self.user])
         for key, val in self.envs.items():
@@ -106,7 +114,7 @@ class Config:
     def __init__(
         self,
         server_address: str = DEFAULT_SERVER_ADDRESS,
-        dirctl_path: str = DEFAULT_DIRCTL_PATH,
+        dirctl_path: str | None = DEFAULT_DIRCTL_PATH,
         spiffe_socket_path: str = DEFAULT_SPIFFE_SOCKET_PATH,
         auth_mode: str = DEFAULT_AUTH_MODE,
         auth_token: str = DEFAULT_AUTH_TOKEN,
@@ -124,7 +132,7 @@ class Config:
         oidc_auth_timeout: float = DEFAULT_OIDC_AUTH_TIMEOUT,
         oidc_scopes: list[str] | None = None,
         oidc_access_token: str | None = None,
-        docker_config: DockerConfig = None,
+        docker_config: DockerConfig | None = None,
     ) -> None:
         self.server_address = server_address
         self.dirctl_path = dirctl_path
@@ -158,8 +166,10 @@ class Config:
     def get_dirctl(self) -> list[str]:
         if self.dirctl_path:
             return [self.dirctl_path]
-        else:
-            return self.docker_config.get_commands()
+        if self.docker_config is None:
+            msg = "Either dirctl_path or docker_config must be configured"
+            raise ValueError(msg)
+        return self.docker_config.get_commands()
 
     @staticmethod
     def load_from_env(env_prefix: str = "DIRECTORY_CLIENT_") -> "Config":

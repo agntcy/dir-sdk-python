@@ -5,7 +5,7 @@ description = "Directory SDK"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "agntcy-dir-grpc-python==1.78.0.1.20260505171211+963d5edc7bb0", # v1.3.0
+    "agntcy-dir-grpc-python==1.78.0.1.20260505171211+963d5edc7bb0",            # v1.3.0
     "agntcy-dir-protocolbuffers-python==34.0.0.1.20260505171211+963d5edc7bb0", # v1.3.0
     "authlib>=1.6.9",
     "httpx>=0.28.1",
@@ -16,7 +16,13 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=9.0.0", "uuid>=1.30"]
+dev = [
+    "pytest>=9.0.0",
+    "uuid>=1.30",
+    "mypy==2.1.0",
+    "ruff==0.15.15",
+    "pydantic>=2.13.4",
+]
 
 [[tool.uv.index]]
 url = "https://buf.build/gen/python"
@@ -30,19 +36,24 @@ packages = ["dir-sdk-python/agntcy"]
 
 [tool.pytest.ini_options]
 pythonpath = ["dir-sdk-python"]
-addopts = ["--import-mode=importlib",]
-
-[tool.ruff]
-line-length = 88
+addopts = ["--import-mode=importlib"]
 
 [tool.ruff.lint]
-select = ["CPY001"]
-ignore = []
-fixable = ["ALL"]
-unfixable = []
+extend-select = ["ANN", "ARG", "ASYNC", "B", "I", "N", "SIM"]
 
-[tool.ruff.lint.flake8-copyright]
-notice-rgx = '''
-(?i)# Copyright AGNTCY Contributors \(https:\/\/github\.com\/agntcy\)
-(?i)# SPDX-License-Identifier: Apache-2\.0
-'''
+[tool.ruff.lint.per-file-ignores]
+"dir-sdk-python/agntcy/dir_sdk/models/*.py" = ["F403"]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "dir-sdk-python"
+explicit_package_bases = true
+exclude_gitignore = true
+warn_return_any = false
+warn_unused_configs = true
+warn_unused_ignores = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["grpc.*", "google.*", "authlib.*", "spiffe.*"]
+ignore_missing_imports = true

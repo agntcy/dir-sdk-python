@@ -8,7 +8,6 @@ import os
 import tempfile
 import unittest
 import unittest.mock
-
 from datetime import UTC, datetime, timedelta
 
 from agntcy.dir_sdk.client import Client, Config
@@ -52,9 +51,13 @@ class OIDCAuthConfigTests(unittest.TestCase):
         self.assertFalse(hasattr(config, "oidc_machine_client_secret"))
 
     def test_token_cache_uses_dirctl_path(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True):
-                cache = TokenCache()
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            unittest.mock.patch.dict(
+                "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+            ),
+        ):
+            cache = TokenCache()
 
         self.assertEqual(
             cache.get_cache_path(),
@@ -129,16 +132,18 @@ class OIDCAuthClientTests(unittest.TestCase):
                 "provider": "oidc",
                 "issuer": "https://issuer.example.com",
                 "refresh_token": "cached-refresh-token",
-                "expires_at": (
-                    datetime.now(UTC) + timedelta(hours=1)
-                ).isoformat().replace("+00:00", "Z"),
+                "expires_at": (datetime.now(UTC) + timedelta(hours=1))
+                .isoformat()
+                .replace("+00:00", "Z"),
                 "created_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             }
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(payload, f)
 
             with (
-                unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True),
+                unittest.mock.patch.dict(
+                    "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+                ),
                 unittest.mock.patch(
                     "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
                 ) as fetch_mock,
@@ -160,28 +165,32 @@ class OIDCAuthClientTests(unittest.TestCase):
             oidc_issuer="https://issuer.example.com",
             oidc_client_id="client-id",
         )
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True):
-                client = Client(config)
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            unittest.mock.patch.dict(
+                "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+            ),
+        ):
+            client = Client(config)
 
-                with (
-                    unittest.mock.patch(
-                        "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
-                        return_value={
-                            "authorization_endpoint": "https://issuer.example.com/auth",
-                            "token_endpoint": "https://issuer.example.com/token",
-                        },
-                    ) as fetch_mock,
-                    unittest.mock.patch(
-                        "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
-                        return_value={
-                            "access_token": "fresh-token",
-                            "refresh_token": "ignored-refresh-token",
-                            "expires_in": 3600,
-                        },
-                    ) as login_mock,
-                ):
-                    client.authenticate_oauth_pkce()
+            with (
+                unittest.mock.patch(
+                    "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
+                    return_value={
+                        "authorization_endpoint": "https://issuer.example.com/auth",
+                        "token_endpoint": "https://issuer.example.com/token",
+                    },
+                ) as fetch_mock,
+                unittest.mock.patch(
+                    "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
+                    return_value={
+                        "access_token": "fresh-token",
+                        "refresh_token": "ignored-refresh-token",
+                        "expires_in": 3600,
+                    },
+                ) as login_mock,
+            ):
+                client.authenticate_oauth_pkce()
 
         self.assertEqual(client.get_access_token(), "fresh-token")
         fetch_mock.assert_called_once()
@@ -195,32 +204,36 @@ class OIDCAuthClientTests(unittest.TestCase):
             oidc_client_id="client-id",
         )
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with unittest.mock.patch.dict("os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True):
-                client = Client(config)
-                with (
-                    unittest.mock.patch(
-                        "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
-                        return_value={
-                            "authorization_endpoint": "https://issuer.example.com/auth",
-                            "token_endpoint": "https://issuer.example.com/token",
-                        },
-                    ),
-                    unittest.mock.patch(
-                        "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
-                        return_value={
-                            "access_token": "fresh-token",
-                            "refresh_token": "refresh-token",
-                            "token_type": "bearer",
-                            "expires_in": 3600,
-                        },
-                    ),
-                ):
-                    client.authenticate_oauth_pkce()
+        with (
+            tempfile.TemporaryDirectory() as tmp_dir,
+            unittest.mock.patch.dict(
+                "os.environ", {"XDG_CONFIG_HOME": tmp_dir}, clear=True
+            ),
+        ):
+            client = Client(config)
+            with (
+                unittest.mock.patch(
+                    "agntcy.dir_sdk.client.auth.session.fetch_openid_configuration",
+                    return_value={
+                        "authorization_endpoint": "https://issuer.example.com/auth",
+                        "token_endpoint": "https://issuer.example.com/token",
+                    },
+                ),
+                unittest.mock.patch(
+                    "agntcy.dir_sdk.client.auth.session.run_loopback_pkce_login",
+                    return_value={
+                        "access_token": "fresh-token",
+                        "refresh_token": "refresh-token",
+                        "token_type": "bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+            ):
+                client.authenticate_oauth_pkce()
 
-                cached_token = TokenCache().load()
+            cached_token = TokenCache().load()
 
-        self.assertIsNotNone(cached_token)
+        assert cached_token is not None
         self.assertEqual(cached_token.access_token, "fresh-token")
         self.assertEqual(cached_token.refresh_token, "refresh-token")
         self.assertEqual(cached_token.provider, "oidc")

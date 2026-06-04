@@ -7,19 +7,21 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.auth.oauth_pkce import (
     OAuthTokenHolder,
     fetch_openid_configuration,
     run_loopback_pkce_login,
 )
 from agntcy.dir_sdk.client.auth.token_cache import CachedToken, TokenCache
+from agntcy.dir_sdk.client.config import Config
 
 
-def cached_token_from_response(config: Config, payload: dict[str, object]) -> CachedToken:
+def cached_token_from_response(
+    config: Config, payload: dict[str, object]
+) -> CachedToken:
     expires_at = None
     expires_in = payload.get("expires_in")
-    if expires_in is not None:
+    if isinstance(expires_in, (int, float, str)):
         expires_at = datetime.now(UTC) + timedelta(seconds=int(expires_in))
 
     refresh_token = payload.get("refresh_token")

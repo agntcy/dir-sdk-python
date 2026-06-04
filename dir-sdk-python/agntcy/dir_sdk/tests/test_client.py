@@ -3,15 +3,21 @@
 import os
 import pathlib
 import subprocess
-import time
 import threading
+import time
 import unittest
 import uuid
 
 import grpc
-
 from agntcy.dir_sdk.client import Client
-from agntcy.dir_sdk.models import *
+from agntcy.dir_sdk.models import (
+    core_v1,
+    events_v1,
+    routing_v1,
+    search_v1,
+    sign_v1,
+    store_v1,
+)
 
 
 class TestClient(unittest.TestCase):
@@ -71,9 +77,11 @@ class TestClient(unittest.TestCase):
     def test_list(self) -> None:
         records = self.gen_records(1, "list")
         record_refs = self.client.push(records=records)
-        self.client.publish(routing_v1.PublishRequest(
-            record_refs=routing_v1.RecordRefs(refs=record_refs),
-        ))
+        self.client.publish(
+            routing_v1.PublishRequest(
+                record_refs=routing_v1.RecordRefs(refs=record_refs),
+            )
+        )
 
         # Sleep to allow the publication to be indexed
         time.sleep(5)
@@ -144,20 +152,16 @@ class TestClient(unittest.TestCase):
                     type=sign_v1.Signature.DESCRIPTOR.full_name,
                     data={
                         "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                        "annotations": {
-                            "payload": "test-payload-data"
-                        }
-                    }
+                        "annotations": {"payload": "test-payload-data"},
+                    },
                 ),
                 store_v1.PushReferrerRequest(
                     record_ref=record_refs[1],
                     type=sign_v1.Signature.DESCRIPTOR.full_name,
                     data={
                         "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                        "annotations": {
-                            "payload": "test-payload-data"
-                        }
-                    }
+                        "annotations": {"payload": "test-payload-data"},
+                    },
                 ),
             ]
 
@@ -183,20 +187,16 @@ class TestClient(unittest.TestCase):
                 type=sign_v1.Signature.DESCRIPTOR.full_name,
                 data={
                     "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                    "annotations": {
-                        "payload": "test-payload-data"
-                    }
-                }
+                    "annotations": {"payload": "test-payload-data"},
+                },
             ),
             store_v1.PushReferrerRequest(
                 record_ref=record_refs[1],
                 type=sign_v1.Signature.DESCRIPTOR.full_name,
                 data={
                     "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                    "annotations": {
-                        "payload": "test-payload-data"
-                    }
-                }
+                    "annotations": {"payload": "test-payload-data"},
+                },
             ),
         ]
         response = self.client.push_referrer(req=request)
@@ -206,7 +206,7 @@ class TestClient(unittest.TestCase):
             assert isinstance(r, store_v1.PushReferrerResponse)
 
         try:
-            request = [
+            pull_request = [
                 store_v1.PullReferrerRequest(
                     record_ref=record_refs[0],
                     referrer_type=sign_v1.Signature.DESCRIPTOR.full_name,
@@ -217,13 +217,13 @@ class TestClient(unittest.TestCase):
                 ),
             ]
 
-            response = self.client.pull_referrer(req=request)
+            pull_response = self.client.pull_referrer(req=pull_request)
 
-            assert response is not None
-            assert len(response) == 2
+            assert pull_response is not None
+            assert len(pull_response) == 2
 
-            for r in response:
-                assert isinstance(r, store_v1.PullReferrerResponse)
+            for pull_r in pull_response:
+                assert isinstance(pull_r, store_v1.PullReferrerResponse)
         except Exception as e:
             assert "pull referrer not implemented" in str(
                 e,
@@ -261,8 +261,12 @@ class TestClient(unittest.TestCase):
         if docker_config:
             cosign_key_path = pathlib.Path("cosign.key").absolute()
             cosign_pub_path = pathlib.Path("cosign.pub").absolute()
-            docker_config.mounts.append(f"type=bind,src={cosign_key_path},dst=/cosign.key")
-            docker_config.mounts.append(f"type=bind,src={cosign_pub_path},dst=/cosign.pub")
+            docker_config.mounts.append(
+                f"type=bind,src={cosign_key_path},dst=/cosign.key"
+            )
+            docker_config.mounts.append(
+                f"type=bind,src={cosign_pub_path},dst=/cosign.pub"
+            )
 
         # Prepare Key signing request using file path reference
         # The CLI will load the key from the file path directly
@@ -282,7 +286,9 @@ class TestClient(unittest.TestCase):
         provider_url = shell_env.get("OIDC_PROVIDER_URL", "")
         client_id = shell_env.get("OIDC_CLIENT_ID", "sigstore")
 
-        sign_oidc_options = sign_v1.SignOptionsOIDC(oidc_provider_url=provider_url, oidc_client_id=client_id)
+        sign_oidc_options = sign_v1.SignOptionsOIDC(
+            oidc_provider_url=provider_url, oidc_client_id=client_id
+        )
         oidc_provider = sign_v1.SignWithOIDC(id_token=token, options=sign_oidc_options)
         request_oidc_provider = sign_v1.SignRequestProvider(oidc=oidc_provider)
         oidc_request = sign_v1.SignRequest(
@@ -305,9 +311,15 @@ class TestClient(unittest.TestCase):
             # Verification is asynchronous (reconciler caches results). Wait for it to run.
             time.sleep(8)
 
-            verify_index = 0
-            for ref in record_refs:
-                response = self.client.verify(sign_v1.VerifyRequest(record_ref=ref, provider=sign_v1.VerifyRequestProvider(any=sign_v1.VerifyWithAny(oidc_options=verify_oidc_options))))
+            for verify_index, ref in enumerate(record_refs):
+                response = self.client.verify(
+                    sign_v1.VerifyRequest(
+                        record_ref=ref,
+                        provider=sign_v1.VerifyRequestProvider(
+                            any=sign_v1.VerifyWithAny(oidc_options=verify_oidc_options)
+                        ),
+                    )
+                )
 
                 assert response.success is True
 
@@ -318,14 +330,18 @@ class TestClient(unittest.TestCase):
                 # For the first record (key-signed), verify key signer info
                 if verify_index == 0:
                     signer = response.signers[0]
-                    assert signer.HasField("key"), "Expected key signer info for key-signed record"
+                    assert signer.HasField("key"), (
+                        "Expected key signer info for key-signed record"
+                    )
                     assert signer.key.public_key, "Expected public key in signer info"
                     assert signer.key.algorithm, "Expected algorithm in signer info"
 
                 # For OIDC-signed record, verify OIDC signer info
                 if verify_index == 1 and token and provider_url:
                     signer = response.signers[0]
-                    assert signer.HasField("oidc"), "Expected OIDC signer info for OIDC-signed record"
+                    assert signer.HasField("oidc"), (
+                        "Expected OIDC signer info for OIDC-signed record"
+                    )
                     assert signer.oidc.issuer, "Expected issuer in OIDC signer info"
                     assert signer.oidc.subject, "Expected subject in OIDC signer info"
 
@@ -347,10 +363,10 @@ class TestClient(unittest.TestCase):
                         assert s_signer.oidc.issuer == r_signer.oidc.issuer
                         assert s_signer.oidc.subject == r_signer.oidc.subject
 
-                verify_index += 1
-
         except Exception as e:
-            assert e is None, f"CID: {record_refs[0].cid} password: {key_provider.password} private_key: {key_provider.private_key}"
+            assert e is None, (
+                f"CID: {record_refs[0].cid} password: {key_provider.password!r} private_key: {key_provider.private_key}"
+            )
         finally:
             pathlib.Path("cosign.key").unlink()
             pathlib.Path("cosign.pub").unlink()
@@ -377,9 +393,9 @@ class TestClient(unittest.TestCase):
 
             try:
                 assert uuid.UUID(create_response.sync_id)
-            except ValueError:
+            except ValueError as e:
                 msg = f"Not an UUID: {create_response.sync_id}"
-                raise ValueError(msg)
+                raise ValueError(msg) from e
 
             list_request = store_v1.ListSyncsRequest()
             list_response = self.client.list_syncs(list_request)
@@ -388,9 +404,9 @@ class TestClient(unittest.TestCase):
                 try:
                     assert isinstance(sync_item, store_v1.ListSyncsItem)
                     assert uuid.UUID(sync_item.sync_id)
-                except ValueError:
+                except ValueError as e:
                     msg = f"Not an UUID: {sync_item.sync_id}"
-                    raise ValueError(msg)
+                    raise ValueError(msg) from e
 
             get_request = store_v1.GetSyncRequest(sync_id=create_response.sync_id)
             get_response = self.client.get_sync(get_request)
@@ -409,11 +425,11 @@ class TestClient(unittest.TestCase):
         listen_stream = self.client.listen(listen_request)
         events = []
 
-        def cancel_stream():
+        def cancel_stream() -> None:
             time.sleep(15)
             listen_stream.cancel()
 
-        def read_stream():
+        def read_stream() -> None:
             try:
                 for response in listen_stream:
                     events.append(response)
@@ -454,9 +470,9 @@ class TestClient(unittest.TestCase):
 
             try:
                 assert isinstance(create_response, routing_v1.CreatePublicationResponse)
-            except ValueError:
-                msg = f"Not a CreatePublicationResponse object."
-                raise ValueError(msg)
+            except ValueError as e:
+                msg = "Not a CreatePublicationResponse object."
+                raise ValueError(msg) from e
 
             list_request = routing_v1.ListPublicationsRequest(limit=3)
             list_response = self.client.list_publication(list_request)
@@ -464,11 +480,13 @@ class TestClient(unittest.TestCase):
             for publication_item in list_response:
                 try:
                     assert isinstance(publication_item, routing_v1.ListPublicationsItem)
-                except ValueError:
-                    msg = f"Not a ListPublicationsItem object."
-                    raise ValueError(msg)
+                except ValueError as e:
+                    msg = "Not a ListPublicationsItem object."
+                    raise ValueError(msg) from e
 
-            get_request = routing_v1.GetPublicationRequest(publication_id=create_response.publication_id)
+            get_request = routing_v1.GetPublicationRequest(
+                publication_id=create_response.publication_id
+            )
             get_response = self.client.get_publication(get_request)
 
             assert isinstance(get_response, routing_v1.GetPublicationResponse)
@@ -479,8 +497,8 @@ class TestClient(unittest.TestCase):
     def test_resolve(self) -> None:
         # Push a record using built-in generator
         records = self.gen_records(1, "resolve")
-        record_name = records[0].data["name"]
-        record_version = records[0].data["version"]
+        record_name = str(records[0].data["name"])
+        record_version = str(records[0].data["version"])
 
         record_refs = self.client.push(records=records)
         assert len(record_refs) == 1
@@ -495,7 +513,9 @@ class TestClient(unittest.TestCase):
         assert resolve_response.records[0].version == record_version
 
         # Resolve by name with version
-        resolve_with_version_response = self.client.resolve(name=record_name, version=record_version)
+        resolve_with_version_response = self.client.resolve(
+            name=record_name, version=record_version
+        )
 
         assert resolve_with_version_response is not None
         assert len(resolve_with_version_response.records) == 1
@@ -512,7 +532,10 @@ class TestClient(unittest.TestCase):
         assert verify_response is not None
         # Unsigned records should return verified=false
         assert verify_response.verified is False
-        assert verify_response.error_message is not None or verify_response.error_message == ""
+        assert (
+            verify_response.error_message is not None
+            or verify_response.error_message == ""
+        )
 
     def gen_records(self, count: int, test_function_name: str) -> list[core_v1.Record]:
         """
@@ -531,26 +554,21 @@ class TestClient(unittest.TestCase):
                     "skills": [
                         {
                             "name": "natural_language_processing/natural_language_generation/text_completion",
-                            "id": 10201
+                            "id": 10201,
                         },
                         {
                             "name": "natural_language_processing/analytical_reasoning/problem_solving",
-                            "id": 10702
-                        }
+                            "id": 10702,
+                        },
                     ],
                     "locators": [
                         {
                             "type": "docker_image",
-                            "url": "https://ghcr.io/agntcy/marketing-strategy"
+                            "url": "https://ghcr.io/agntcy/marketing-strategy",
                         }
                     ],
-                    "domains": [
-                        {
-                            "name": "technology/networking",
-                            "id": 103
-                        }
-                    ],
-                    "modules": []
+                    "domains": [{"name": "technology/networking", "id": 103}],
+                    "modules": [],
                 }
             )
             for index in range(count)
@@ -559,7 +577,7 @@ class TestClient(unittest.TestCase):
         return records
 
     @staticmethod
-    def cancel_stream_after_delay(responses, delay_sec=5):
+    def cancel_stream_after_delay(responses: grpc.Call, delay_sec: int = 5) -> None:
         # Wait before cancelling to simulate some condition or timeout
         time.sleep(delay_sec)
         print("Cancelling the stream...")

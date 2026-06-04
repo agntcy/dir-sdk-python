@@ -33,8 +33,10 @@ def _sign_with_key(
     run_dirctl(
         config,
         ["sign", record_ref.cid, "--key", key_signer.private_key],
-        env={"COSIGN_PASSWORD": password,
-             "DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address},
+        env={
+            "COSIGN_PASSWORD": password,
+            "DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address,
+        },
     )
 
 
@@ -61,4 +63,6 @@ def _sign_with_oidc(
     if oidc_signer.options.skip_tlog:
         command.append("--skip-tlog")
 
-    run_dirctl(config, command, env={"DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address})
+    run_dirctl(
+        config, command, env={"DIRECTORY_CLIENT_SERVER_ADDRESS": config.server_address}
+    )

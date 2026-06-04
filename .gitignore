@@ -19,6 +19,11 @@ __pycache__/
 *.pyd
 .venv/
 
+# Caches
+.pytest_cache
+.ruff_cache
+.mypy_cache
+
 # MacOS
 .DS_Store
 

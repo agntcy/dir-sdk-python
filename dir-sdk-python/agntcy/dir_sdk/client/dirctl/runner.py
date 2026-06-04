@@ -35,7 +35,8 @@ def build_dirctl_base_command(
         raise RuntimeError(msg)
 
     docker_config = _copy_docker_config(config.docker_config)
-    docker_config.envs.update(env)
+    if env:
+        docker_config.envs.update(env)
     docker_config.mounts.extend(extra_mounts)
     return docker_config.get_commands()
 
@@ -48,7 +49,10 @@ def run_dirctl(
     timeout: int = 60,
     extra_mounts: Sequence[str] | None = None,
 ) -> None:
-    command = [*build_dirctl_base_command(config, env=env, extra_mounts=extra_mounts), *args]
+    command = [
+        *build_dirctl_base_command(config, env=env, extra_mounts=extra_mounts),
+        *args,
+    ]
     shell_env = os.environ.copy()
     if env:
         shell_env.update(env)

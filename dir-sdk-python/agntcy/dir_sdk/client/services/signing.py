@@ -5,10 +5,10 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 import grpc
-
 from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.dirctl.signing import sign_record
 from agntcy.dir_sdk.client.dirctl.verification import verify_record
@@ -17,7 +17,12 @@ from agntcy.dir_sdk.models import sign_v1
 
 
 class SignService(RpcServiceBase):
-    def __init__(self, config: Config, sign_client: sign_v1.SignServiceStub, logger) -> None:
+    def __init__(
+        self,
+        config: Config,
+        sign_client: sign_v1.SignServiceStub,
+        logger: logging.Logger,
+    ) -> None:
         super().__init__(logger)
         self._config = config
         self._sign_client = sign_client

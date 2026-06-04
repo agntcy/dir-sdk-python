@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
@@ -12,7 +13,9 @@ from agntcy.dir_sdk.models import store_v1
 
 
 class SyncService(RpcServiceBase):
-    def __init__(self, sync_client: store_v1.SyncServiceStub, logger) -> None:
+    def __init__(
+        self, sync_client: store_v1.SyncServiceStub, logger: logging.Logger
+    ) -> None:
         super().__init__(logger)
         self._sync_client = sync_client
 

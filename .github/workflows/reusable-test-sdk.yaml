@@ -43,7 +43,7 @@ jobs:
         env:
           CLIENT_ID: "https://github.com/${{ github.repository }}/.github/workflows/reusable-test-sdk.yaml@${{ github.ref }}"
         run: |
-          task sdk:deps:cicd:iodc-token-generation >> $GITHUB_ENV
+          task deps:cicd:iodc-token-generation >> $GITHUB_ENV
 
       - name: Test Python SDK
         env:

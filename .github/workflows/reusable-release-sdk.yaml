@@ -29,10 +29,10 @@ jobs:
 
       - name: Build the Python package
         run: |
-          task sdk:build:python
+          task build
 
       - name: Publish the Python SDK
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          task sdk:release:python
+          task release
