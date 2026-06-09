@@ -50,4 +50,4 @@ jobs:
           DIR_CHART_VERSION: ${{ inputs.dir_chart_version }}
           DIRCTL_IMAGE_TAG: ${{ inputs.dirctl_image_tag }}
         run: |
-          task sdk:test:python
+          task test
