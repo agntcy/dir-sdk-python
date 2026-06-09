@@ -4,8 +4,8 @@
 version: "3"
 
 vars:
-  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "0.0.0-latest" }}'
-  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "latest" }}'
+  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.4.0" }}'
+  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.4.0" }}'
   RENOVATE_VERSION: "43.89.5"
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
   HELM_VERSION: "4.1.3"
@@ -46,7 +46,7 @@ tasks:
     cmds:
       - task: test-env:deploy:cleanup
 
-  sdk:test:python:
+  test:
     desc: Test python client SDK package
     deps:
       - task: deps
@@ -213,6 +213,7 @@ tasks:
           {{ if .DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL }}--set apiserver.config.publication.scheduler_interval="{{ .DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL }}"{{ end }} \
           {{ if .DIRECTORY_SERVER_NAMING_TTL }}--set apiserver.config.naming.ttl="{{ .DIRECTORY_SERVER_NAMING_TTL }}"{{ end }} \
           --set apiserver.config.routing.refresh_interval="1s" \
+          --set-json 'apiserver.config.routing.bootstrap_peers=[]' \
           --set apiserver.secrets.ociAuth.username="${HTPASSWD_USERNAME}" \
           --set apiserver.secrets.ociAuth.password="${HTPASSWD_PASSWORD}" \
           --set apiserver.zot.authHeader="${HTPASSWD_AUTH_HEADER}" \
