@@ -25,7 +25,12 @@ dev = [
 ]
 
 [[tool.uv.index]]
+name = "buf"
 url = "https://buf.build/gen/python"
+
+[tool.uv.sources]
+agntcy-dir-grpc-python = { index = "buf" }
+agntcy-dir-protocolbuffers-python = { index = "buf" }
 
 [build-system]
 requires = ["hatchling"]

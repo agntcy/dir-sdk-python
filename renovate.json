@@ -43,7 +43,14 @@
     "pep621"
   ],
   "labels": ["dependencies"],
-  "ignoreDeps": [],
+  "ignoreDeps": [
+    "agntcy-dir-grpc-python",
+    "agntcy-dir-protocolbuffers-python",
+    "agntcy-dir-protocolbuffers-pyi",
+    "bufbuild-protovalidate-grpc-python",
+    "bufbuild-protovalidate-protocolbuffers-python",
+    "bufbuild-protovalidate-protocolbuffers-pyi"
+  ],
   "osvVulnerabilityAlerts": true,
   "lockFileMaintenance": {
     "enabled": true
