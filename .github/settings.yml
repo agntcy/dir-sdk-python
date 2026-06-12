@@ -113,3 +113,16 @@ repository:
 #        apps: []
 #        users: []
 #        teams: []
+
+branches:
+  - name: renovate/*
+    protection:
+      # Dependency update branches: only the Renovate automation app may push.
+      required_pull_request_reviews: null
+      required_status_checks: null
+      enforce_admins: true
+      restrictions:
+        apps:
+          - agntcy-automation
+        users: []
+        teams: []
