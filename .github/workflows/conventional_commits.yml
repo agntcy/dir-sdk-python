@@ -3,9 +3,10 @@ name: commit-msg
 
 on:
   push:
-    # Run superlinter on pushes to default branch
+    # Run superlinter on pushes to default branch and Renovate branches
     branches:
       - main
+      - renovate/**
   # Run superlinter on pull request events
   pull_request:
 
