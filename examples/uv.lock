@@ -4,7 +4,7 @@ requires-python = ">=3.10"
 
 [[package]]
 name = "agntcy-dir"
-version = "1.3.0"
+version = "1.4.0"
 source = { editable = "../" }
 dependencies = [
     { name = "agntcy-dir-grpc-python" },
@@ -20,7 +20,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "agntcy-dir-grpc-python", specifier = "==1.81.0.1.20260528135443+85b61b2b84a9", index = "https://buf.build/gen/python" },
-    { name = "agntcy-dir-protocolbuffers-python", specifier = "==35.0.0.1.20260528135443+85b61b2b84a9", index = "https://buf.build/gen/python"},
+    { name = "agntcy-dir-protocolbuffers-python", specifier = "==35.0.0.1.20260528135443+85b61b2b84a9", index = "https://buf.build/gen/python" },
     { name = "authlib", specifier = ">=1.6.9" },
     { name = "grpcio", specifier = ">=1.78.0" },
     { name = "httpx", specifier = ">=0.28.1" },
