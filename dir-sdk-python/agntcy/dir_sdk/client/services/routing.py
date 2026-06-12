@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import builtins
 import logging
 from collections.abc import Sequence
 
@@ -34,11 +35,22 @@ class RoutingService(RpcServiceBase):
         self,
         req: routing_v1.ListRequest,
         metadata: Sequence[tuple[str, str]] | None = None,
-    ) -> list[routing_v1.ListResponse]:
+    ) -> builtins.list[routing_v1.ListResponse]:
         return self._collect_stream(
             "list",
             "Failed to list objects",
             lambda: self._routing_client.List(req, metadata=metadata),
+        )
+
+    def search_routing(
+        self,
+        req: routing_v1.SearchRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
+    ) -> builtins.list[routing_v1.SearchResponse]:
+        return self._collect_stream(
+            "search_routing",
+            "Failed to search network",
+            lambda: self._routing_client.Search(req, metadata=metadata),
         )
 
     def unpublish(
