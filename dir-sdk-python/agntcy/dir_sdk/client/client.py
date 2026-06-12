@@ -116,6 +116,13 @@ class Client:
     ) -> list[routing_v1.ListResponse]:
         return self.routing_service.list(req, metadata=metadata)
 
+    def search_routing(
+        self,
+        req: routing_v1.SearchRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
+    ) -> builtins.list[routing_v1.SearchResponse]:
+        return self.routing_service.search_routing(req, metadata=metadata)
+
     def search_cids(
         self,
         req: search_v1.SearchCIDsRequest,
@@ -178,6 +185,13 @@ class Client:
         metadata: Sequence[tuple[str, str]] | None = None,
     ) -> None:
         self.store_service.delete(refs, metadata=metadata)
+
+    def delete_referrer(
+        self,
+        req: store_v1.DeleteReferrerRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
+    ) -> store_v1.DeleteReferrerResponse:
+        return self.store_service.delete_referrer(req, metadata=metadata)
 
     def create_sync(
         self,
