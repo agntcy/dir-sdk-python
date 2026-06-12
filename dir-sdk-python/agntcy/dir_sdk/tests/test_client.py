@@ -120,6 +120,92 @@ class TestClient(unittest.TestCase):
         for o in objects:
             assert isinstance(o, search_v1.SearchCIDsResponse)
 
+    def test_search_annotation(self) -> None:
+        records = [
+            core_v1.Record(
+                data={
+                    "name": f"agntcy-annotation-{uuid.uuid4().hex[:8]}",
+                    "version": "v3.0.0",
+                    "schema_version": "0.8.0",
+                    "description": "Record with custom annotations.",
+                    "authors": ["AGNTCY"],
+                    "created_at": "2025-03-19T17:06:37Z",
+                    "annotations": {"key": "value"},
+                    "skills": [
+                        {
+                            "name": "natural_language_processing/natural_language_generation/text_completion",
+                            "id": 10201,
+                        }
+                    ],
+                    "locators": [],
+                    "domains": [{"name": "technology/networking", "id": 103}],
+                    "modules": [],
+                }
+            )
+        ]
+        record_refs = self.client.push(records=records)
+        assert len(record_refs) == 1
+
+        search_query = search_v1.RecordQuery(
+            type=search_v1.RECORD_QUERY_TYPE_ANNOTATION,
+            value="key:value",
+        )
+        search_request = search_v1.SearchCIDsRequest(queries=[search_query], limit=10)
+        objects = self.client.search_cids(search_request)
+
+        assert any(o.record_cid == record_refs[0].cid for o in objects)
+
+    def test_search_routing(self) -> None:
+        records = self.gen_records(1, "search_routing")
+        record_refs = self.client.push(records=records)
+
+        self.client.publish(
+            routing_v1.PublishRequest(
+                record_refs=routing_v1.RecordRefs(refs=record_refs),
+            )
+        )
+
+        time.sleep(5)
+
+        search_query = routing_v1.RecordQuery(
+            type=routing_v1.RECORD_QUERY_TYPE_DOMAIN,
+            value="technology/networking",
+        )
+        search_request = routing_v1.SearchRequest(queries=[search_query], limit=10)
+        objects = self.client.search_routing(search_request)
+
+        assert objects is not None
+        for obj in objects:
+            assert isinstance(obj, routing_v1.SearchResponse)
+
+    def test_delete_referrer(self) -> None:
+        records = self.gen_records(1, "delete_referrer")
+        record_refs = self.client.push(records=records)
+
+        push_response = self.client.push_referrer(
+            req=[
+                store_v1.PushReferrerRequest(
+                    record_ref=record_refs[0],
+                    type=sign_v1.Signature.DESCRIPTOR.full_name,
+                    data={
+                        "signature": "dGVzdC1zaWduYXR1cmU=",
+                        "annotations": {"payload": "test-payload-data"},
+                    },
+                )
+            ]
+        )
+        assert len(push_response) == 1
+        assert push_response[0].success
+
+        delete_response = self.client.delete_referrer(
+            store_v1.DeleteReferrerRequest(
+                record=record_refs[0],
+                referrer_ref=push_response[0].referrer_ref,
+            )
+        )
+        assert delete_response is not None
+        assert len(delete_response.referrer_refs) > 0
+
     def test_unpublish(self) -> None:
         records = self.gen_records(1, "unpublish")
         record_refs = self.client.push(records=records)
