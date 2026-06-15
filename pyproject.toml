@@ -36,6 +36,11 @@ agntcy-dir-protocolbuffers-python = { index = "buf" }
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+exclude = [
+    "/dir-sdk-python/agntcy/dir_sdk/tests",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["dir-sdk-python/agntcy"]
 
