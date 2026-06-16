@@ -32,6 +32,7 @@ def generate_record(name: str) -> core_v1.Record:
                 }
             ],
             "domains": [{"name": "technology/networking", "id": 103}],
+            "annotations": {"env": "prod"},
             "modules": [
                 {
                     "name": "integration/a2a",
@@ -93,7 +94,7 @@ def main() -> None:
     for o in listed_objects:
         print("Listed object:", MessageToJson(o))
 
-    # Search objects
+    # Search objects by version
     search_query = search_v1.RecordQuery(
         type=search_v1.RECORD_QUERY_TYPE_VERSION,
         value="v1.*",
@@ -103,6 +104,16 @@ def main() -> None:
     search_results = client.search_cids(search_request)
 
     print("Searched objects:", search_results)
+
+    # Search objects by annotation key:value (v1.4)
+    annotation_query = search_v1.RecordQuery(
+        type=search_v1.RECORD_QUERY_TYPE_ANNOTATION,
+        value="env:prod",
+    )
+    annotation_results = client.search_cids(
+        search_v1.SearchCIDsRequest(queries=[annotation_query], limit=3),
+    )
+    print("Annotation search results:", annotation_results)
 
     # Unpublish the object
     record_refs = routing_v1.RecordRefs(refs=[refs[0]])

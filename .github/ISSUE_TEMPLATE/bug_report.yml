@@ -30,6 +30,7 @@ body:
         If applicable, provide the version number or release tag where this
         issue was encountered
       options:
+        - v1.4.0
         - v1.3.0
         - v1.2.1
       default: 0

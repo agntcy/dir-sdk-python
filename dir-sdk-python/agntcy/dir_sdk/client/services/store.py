@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import builtins
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
 from agntcy.dir_sdk.models import core_v1, store_v1
@@ -84,4 +84,28 @@ class StoreService(RpcServiceBase):
             "delete",
             "Failed to delete object",
             lambda: self._store_client.Delete(iter(refs), metadata=metadata),
+        )
+
+    def delete_referrer(
+        self,
+        req: store_v1.DeleteReferrerRequest,
+        metadata: Sequence[tuple[str, str]] | None = None,
+    ) -> store_v1.DeleteReferrerResponse:
+        def call() -> store_v1.DeleteReferrerResponse:
+            def request_iterator() -> Iterator[store_v1.DeleteReferrerRequest]:
+                yield req
+
+            responses = self._store_client.DeleteReferrer(
+                request_iterator(),
+                metadata=metadata,
+            )
+            for response in responses:
+                return response
+            msg = "DeleteReferrer returned no response"
+            raise RuntimeError(msg)
+
+        return self._invoke(
+            "delete_referrer",
+            "Failed to delete referrer",
+            call,
         )

@@ -3,6 +3,19 @@
 [agntcy/dir]: https://github.com/agntcy/dir
 [agntcy/dir-sdk-python]: https://github.com/agntcy/dir-sdk-python
 
+## 1.4.0 (2026-06-12)
+
+### Added
+
+- `search_routing` for network-wide `RoutingService.Search`.
+- `delete_referrer` for `StoreService.DeleteReferrer`.
+- Annotation-based search support (`RECORD_QUERY_TYPE_ANNOTATION`) in tests and examples.
+
+### Changed
+
+- Updated buf-generated SDK dependencies to track [agntcy/dir][agntcy/dir] `v1.4.0`.
+- Bumped the directory chart and `dirctl` image used in CI to `v1.4.0`.
+
 ## 1.3.0 (2026-05-12)
 
 ### Changed
