@@ -4,6 +4,7 @@
 # Export all protobuf packages for easier module imports.
 # The actual subpackages in agntcy_dir.models expose gRPC stubs.
 
+from . import catalog_v1 as catalog_v1
 from . import core_v1 as core_v1
 from . import events_v1 as events_v1
 from . import naming_v1 as naming_v1
