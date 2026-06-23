@@ -14,19 +14,41 @@ on:
         required: false
         type: string
         description: "Override the tag of the dir-ctl Docker image to use in the tests."
+      sdk_ref:
+        required: false
+        type: string
+        description: "Git ref (branch, tag, or SHA) of agntcy/dir-sdk-python to test. When omitted, resolved automatically."
 
 permissions:
   id-token: write
   contents: read
+  packages: read
 
 jobs:
   python:
     name: Python
     runs-on: ubuntu-latest
     steps:
+      # Cross-repo callers (e.g. agntcy/csit) need GITHUB_TOKEN with contents:read on this repo.
+      - name: Resolve SDK ref
+        id: sdk-ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.sdk_ref }}" ]; then
+            ref="${{ inputs.sdk_ref }}"
+          elif [ "${{ github.repository }}" = "agntcy/dir-sdk-python" ]; then
+            ref="${{ github.sha }}"
+          else
+            ref="main"
+          fi
+          echo "ref=${ref}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
+          repository: agntcy/dir-sdk-python
+          ref: ${{ steps.sdk-ref.outputs.ref }}
           fetch-depth: 0
 
       - name: Login to ghcr.io
@@ -41,7 +63,7 @@ jobs:
 
       - name: Add dependencies for SDKs testing
         env:
-          CLIENT_ID: "https://github.com/${{ github.repository }}/.github/workflows/reusable-test-sdk.yaml@${{ github.ref }}"
+          CLIENT_ID: "https://github.com/agntcy/dir-sdk-python/.github/workflows/reusable-test-sdk.yaml@${{ steps.sdk-ref.outputs.ref }}"
         run: |
           task deps:cicd:iodc-token-generation >> $GITHUB_ENV
 
