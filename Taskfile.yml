@@ -13,7 +13,7 @@ vars:
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
 
   # renovate: datasource=github-tags depName=helm/helm versioning=semver
-  HELM_VERSION: "4.2.0"
+  HELM_VERSION: "4.2.1"
   HELM_BIN: "{{ .BIN_DIR }}/helm-{{.HELM_VERSION}}"
 
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
