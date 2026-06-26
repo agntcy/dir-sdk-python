@@ -58,8 +58,6 @@ jobs:
         uses: go-task/setup-task@01a4adf9db2d14c1de7a560f09170b6e0df736aa # v2.1.0
 
       - name: Add dependencies for SDKs testing
-        env:
-          CLIENT_ID: "https://github.com/agntcy/dir-sdk-python/.github/workflows/reusable-test-sdk.yaml@${{ steps.sdk-ref.outputs.ref }}"
         run: |
           task deps:cicd:iodc-token-generation >> $GITHUB_ENV
 

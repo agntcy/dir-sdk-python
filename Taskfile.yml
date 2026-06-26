@@ -407,8 +407,6 @@ tasks:
 
   deps:cicd:iodc-token-generation:
     desc: Get Fulcio OIDC token for CICD
-    requires:
-      vars: [CLIENT_ID]
     cmds:
       - |
         OIDC_TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
@@ -418,5 +416,5 @@ tasks:
         PROVIDER_URL="https://token.actions.githubusercontent.com"
 
         echo "OIDC_PROVIDER_URL=${PROVIDER_URL}"
-        echo "CLIENT_ID=${CLIENT_ID}"
+        echo "OIDC_CLIENT_ID=sigstore"
         echo "OIDC_TOKEN=${OIDC_TOKEN}"

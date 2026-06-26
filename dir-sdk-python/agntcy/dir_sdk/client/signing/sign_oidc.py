@@ -49,7 +49,7 @@ def sign_with_oidc(
         ),
     )
 
-    with signing_ctx.signer(identity_token, cache=False) as signer:
+    with signing_ctx.signer(identity_token) as signer:
         bundle = signer.sign_artifact(payload)
 
     cert_der = bundle.signing_certificate.public_bytes(encoding=Encoding.DER)

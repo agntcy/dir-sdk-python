@@ -22,18 +22,29 @@ from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.x509 import (
     Certificate,
+    ExtensionNotFound,
     OtherName,
     RFC822Name,
     SubjectAlternativeName,
     UniformResourceIdentifier,
 )
+from cryptography.x509.oid import ObjectIdentifier
 from sigstore.errors import VerificationError
 from sigstore.models import Bundle, ClientTrustConfig, TrustedRoot
 from sigstore.verify import Verifier
-from sigstore.verify.policy import Identity, UnsafeNoOp
+from sigstore.verify.policy import UnsafeNoOp
 
-_OTHERNAME_OID = "1.3.6.1.4.1.57264.1.7"
-_ISSUER_OID = "1.3.6.1.4.1.57264.1.8"
+_OTHERNAME_OID = ObjectIdentifier("1.3.6.1.4.1.57264.1.7")
+_FULCIO_ISSUER_OID = ObjectIdentifier("1.3.6.1.4.1.57264.1.1")
+
+
+def _decode_fulcio_extension_string(data: bytes) -> str:
+    # Fulcio encodes custom X.509 extension values as ASN.1 UTF8String.
+    if len(data) >= 2 and data[0] == 0x0C:
+        length = data[1]
+        if 2 + length <= len(data):
+            return data[2 : 2 + length].decode("utf-8")
+    return data.decode("utf-8")
 
 
 def _value_matchers(value: str) -> tuple[str | None, re.Pattern[str] | None]:
@@ -47,9 +58,11 @@ def _value_matchers(value: str) -> tuple[str | None, re.Pattern[str] | None]:
 
 def _certificate_identities(cert: Certificate) -> tuple[str, set[str]]:
     issuer = ""
-    for ext in cert.extensions:
-        if ext.oid.dotted_string == _ISSUER_OID:
-            issuer = ext.value.value.decode()
+    try:
+        issuer_ext = cert.extensions.get_extension_for_oid(_FULCIO_ISSUER_OID).value
+        issuer = _decode_fulcio_extension_string(issuer_ext.value)  # type: ignore[attr-defined]
+    except ExtensionNotFound:
+        pass
 
     identities: set[str] = set()
     try:
@@ -57,8 +70,8 @@ def _certificate_identities(cert: Certificate) -> tuple[str, set[str]]:
         identities.update(san_ext.get_values_for_type(RFC822Name))
         identities.update(san_ext.get_values_for_type(UniformResourceIdentifier))
         for other_name in san_ext.get_values_for_type(OtherName):
-            if other_name.type_id.dotted_string == _OTHERNAME_OID:
-                identities.add(other_name.value.decode())
+            if other_name.type_id == _OTHERNAME_OID:
+                identities.add(_decode_fulcio_extension_string(other_name.value))
     except Exception:
         pass
 
@@ -147,11 +160,7 @@ def _verify_with_oidc(
     bundle = Bundle.from_json(signature.content_bundle)
 
     verifier = Verifier(trusted_root=_trusted_root_from_options(opts))
-    policy: Identity | UnsafeNoOp
-    if req.issuer or req.subject:
-        policy = UnsafeNoOp()
-    else:
-        policy = Identity(identity=".*", issuer=".*")
+    policy = UnsafeNoOp()
 
     try:
         verifier.verify_artifact(payload, bundle, policy)
