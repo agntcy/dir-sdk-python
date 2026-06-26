@@ -337,24 +337,10 @@ class TestClient(unittest.TestCase):
         shell_env = os.environ.copy()
         shell_env["COSIGN_PASSWORD"] = key_password
 
-        docker_config = self.client.config.docker_config
-        if docker_config:
-            docker_config.envs["COSIGN_PASSWORD"] = key_password
-
         # Generate a key pair using cosign
         cosign_path = os.getenv("COSIGN_PATH", "cosign")
         command = (cosign_path, "generate-key-pair")
         subprocess.run(command, check=True, capture_output=True, env=shell_env)
-
-        if docker_config:
-            cosign_key_path = pathlib.Path("cosign.key").absolute()
-            cosign_pub_path = pathlib.Path("cosign.pub").absolute()
-            docker_config.mounts.append(
-                f"type=bind,src={cosign_key_path},dst=/cosign.key"
-            )
-            docker_config.mounts.append(
-                f"type=bind,src={cosign_pub_path},dst=/cosign.pub"
-            )
 
         # Prepare Key signing request using file path reference
         # The CLI will load the key from the file path directly

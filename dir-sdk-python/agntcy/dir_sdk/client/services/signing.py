@@ -9,22 +9,21 @@ import logging
 from collections.abc import Sequence
 
 import grpc
-from agntcy.dir_sdk.client.config import Config
-from agntcy.dir_sdk.client.dirctl.signing import sign_record
-from agntcy.dir_sdk.client.dirctl.verification import verify_record
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
+from agntcy.dir_sdk.client.services.store import StoreService
+from agntcy.dir_sdk.client.signing import sign_record, verify_record
 from agntcy.dir_sdk.models import sign_v1
 
 
 class SignService(RpcServiceBase):
     def __init__(
         self,
-        config: Config,
+        store_service: StoreService,
         sign_client: sign_v1.SignServiceStub,
         logger: logging.Logger,
     ) -> None:
         super().__init__(logger)
-        self._config = config
+        self._store_service = store_service
         self._sign_client = sign_client
 
     def verify(
@@ -45,14 +44,14 @@ class SignService(RpcServiceBase):
                 self._logger.exception("Verification failed: %s", e)
                 raise RuntimeError(f"Verify failed: {e}") from e
         try:
-            return verify_record(self._config, req)
+            return verify_record(self._store_service, req)
         except Exception as e:
             self._logger.exception("Verification operation failed: %s", e)
             raise RuntimeError(f"Failed to verify the object: {e}") from e
 
     def sign(self, req: sign_v1.SignRequest) -> None:
         try:
-            sign_record(self._config, req)
+            sign_record(self._store_service, req)
         except RuntimeError as e:
             raise RuntimeError(f"Failed to sign the object: {e}") from e
         except Exception as e:

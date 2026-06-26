@@ -30,69 +30,8 @@ def _parse_comma_scopes(value: str | list[str] | None, default: list[str]) -> li
     return [s.strip() for s in value.split(",") if s.strip()]
 
 
-class DockerConfig:
-    """
-    A class for using dirctl via the Docker image.
-    """
-
-    DEFAULT_DIRCTL_IMAGE = "ghcr.io/agntcy/dir-ctl"
-    DEFAULT_DIRCTL_IMAGE_TAG = "latest"
-
-    def __init__(
-        self,
-        dirctl_image: str = DEFAULT_DIRCTL_IMAGE,
-        dirctl_image_tag: str = DEFAULT_DIRCTL_IMAGE_TAG,
-        envs: dict[str, str] | None = None,
-        mounts: list[str] | None = None,
-        user: str | None = None,
-    ) -> None:
-        if envs is None:
-            envs = {}
-        if mounts is None:
-            mounts = []
-
-        self.dirctl_image = dirctl_image
-        self.dirctl_image_tag = dirctl_image_tag
-        self.envs: dict[str, str] = envs
-        self.mounts: list[str] = mounts
-        self.user = user
-
-    def get_commands(self) -> list[str]:
-        self.prune_mounts()
-        commands = [
-            "docker",
-            "container",
-            "run",
-            "--name=dir-ctl",
-            "--rm",
-            "--network",
-            "host",
-        ]
-        if self.user:
-            commands.extend(["--user", self.user])
-        for key, val in self.envs.items():
-            commands.append("--env")
-            commands.append(f"{key}={val}")
-        for mount in self.mounts:
-            commands.append("--mount")
-            commands.append(mount)
-        commands.append(f"{self.dirctl_image}:{self.dirctl_image_tag}")
-        return commands
-
-    def prune_mounts(self) -> None:
-        mounts = []
-        for mount in self.mounts:
-            if mount.startswith("type=bind"):
-                type, src, dst = mount.split(",")
-                _, src = src.split("=")
-                if os.path.isfile(src):
-                    mounts.append(mount)
-        self.mounts = mounts
-
-
 class Config:
     DEFAULT_SERVER_ADDRESS = "127.0.0.1:8888"
-    DEFAULT_DIRCTL_PATH = "dirctl"
     DEFAULT_SPIFFE_SOCKET_PATH = ""
     DEFAULT_AUTH_MODE = ""
     DEFAULT_AUTH_TOKEN: str = ""
@@ -114,7 +53,6 @@ class Config:
     def __init__(
         self,
         server_address: str = DEFAULT_SERVER_ADDRESS,
-        dirctl_path: str | None = DEFAULT_DIRCTL_PATH,
         spiffe_socket_path: str = DEFAULT_SPIFFE_SOCKET_PATH,
         auth_mode: str = DEFAULT_AUTH_MODE,
         auth_token: str = DEFAULT_AUTH_TOKEN,
@@ -132,10 +70,8 @@ class Config:
         oidc_auth_timeout: float = DEFAULT_OIDC_AUTH_TIMEOUT,
         oidc_scopes: list[str] | None = None,
         oidc_access_token: str | None = None,
-        docker_config: DockerConfig | None = None,
     ) -> None:
         self.server_address = server_address
-        self.dirctl_path = dirctl_path
         self.spiffe_socket_path = spiffe_socket_path
         resolved_auth_token = auth_token or oidc_access_token or ""
         self.auth_token = resolved_auth_token
@@ -159,33 +95,10 @@ class Config:
             if oidc_scopes is not None
             else list(Config.DEFAULT_OIDC_SCOPES)
         )
-        self.docker_config = docker_config
-        if dirctl_path and docker_config:
-            raise ValueError("You cannot specify both dirctl_path and docker_config.")
-
-    def get_dirctl(self) -> list[str]:
-        if self.dirctl_path:
-            return [self.dirctl_path]
-        if self.docker_config is None:
-            msg = "Either dirctl_path or docker_config must be configured"
-            raise ValueError(msg)
-        return self.docker_config.get_commands()
 
     @staticmethod
     def load_from_env(env_prefix: str = "DIRECTORY_CLIENT_") -> "Config":
         """Load configuration from environment variables."""
-        dirctl_path = os.environ.get("DIRCTL_PATH")
-        dirctl_image = os.environ.get("DIRCTL_IMAGE")
-        dirctl_image_tag = os.environ.get("DIRCTL_IMAGE_TAG")
-
-        docker_config = None
-        if dirctl_image or dirctl_image_tag:
-            docker_config = DockerConfig(
-                dirctl_image or DockerConfig.DEFAULT_DIRCTL_IMAGE,
-                dirctl_image_tag or DockerConfig.DEFAULT_DIRCTL_IMAGE_TAG,
-                user="0:0",
-            )
-
         server_address = os.environ.get(
             f"{env_prefix}SERVER_ADDRESS",
             Config.DEFAULT_SERVER_ADDRESS,
@@ -257,7 +170,6 @@ class Config:
 
         return Config(
             server_address=server_address,
-            dirctl_path=dirctl_path,
             spiffe_socket_path=spiffe_socket_path,
             auth_mode=auth_mode,
             auth_token=auth_token,
@@ -274,5 +186,4 @@ class Config:
             oidc_callback_port=oidc_callback_port,
             oidc_auth_timeout=oidc_auth_timeout,
             oidc_scopes=oidc_scopes,
-            docker_config=docker_config,
         )

@@ -17,10 +17,6 @@ on:
         required: false
         type: string
         description: "Override the version of the dir Helm chart to install for the tests."
-      dirctl_image_tag:
-        required: false
-        type: string
-        description: "Override the tag of the dir-ctl Docker image to use in the tests."
 
 permissions:
   contents: write
@@ -90,7 +86,6 @@ jobs:
     uses: ./.github/workflows/reusable-test-sdk.yaml
     with:
       dir_chart_version: ${{ inputs.dir_chart_version }}
-      dirctl_image_tag: ${{ inputs.dirctl_image_tag }}
 
   release:
     name: Release

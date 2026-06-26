@@ -28,9 +28,8 @@ The Directory Python SDK provides comprehensive access to all Directory APIs wit
 - **Network Management**: Unpublish records to remove them from network discovery
 
 ### **Signing and Verification**
-- **Local Signing**: Sign records locally using private keys or OIDC-based authentication. 
-Requires [dirctl](https://github.com/agntcy/dir/releases) binary to perform signing.
-- **Remote Verification**: Verify record signatures using the Directory gRPC API
+- **Local Signing**: Sign records locally using private keys or OIDC-based authentication via native Sigstore support
+- **Local Verification**: Verify record signatures locally or using the Directory gRPC API
 
 ### **Developer Experience**
 - **Type Safety**: Full type hints for better IDE support and fewer runtime errors
@@ -59,7 +58,6 @@ The SDK can be configured via environment variables or direct instantiation:
 ```python
 # Environment variables (insecure mode, default)
 export DIRECTORY_CLIENT_SERVER_ADDRESS="localhost:8888"
-export DIRCTL_PATH="/path/to/dirctl"
 
 # Environment variables (X.509 authentication)
 export DIRECTORY_CLIENT_SERVER_ADDRESS="localhost:8888"
@@ -78,14 +76,12 @@ from agntcy.dir_sdk.client import Config, Client
 # Insecure mode (default, for development only)
 config = Config(
     server_address="localhost:8888",
-    dirctl_path="/usr/local/bin/dirctl"
 )
 client = Client(config)
 
 # X.509 authentication with SPIRE
 x509_config = Config(
     server_address="localhost:8888",
-    dirctl_path="/usr/local/bin/dirctl",
     spiffe_socket_path="/tmp/agent.sock",
     auth_mode="x509"
 )
@@ -94,7 +90,6 @@ x509_client = Client(x509_config)
 # JWT authentication with SPIRE
 jwt_config = Config(
     server_address="localhost:8888",
-    dirctl_path="/usr/local/bin/dirctl",
     spiffe_socket_path="/tmp/agent.sock",
     auth_mode="jwt",
     jwt_audience="spiffe://example.org/dir-server"
@@ -223,7 +218,6 @@ Common gRPC status codes:
 
 - Python 3.10 or higher
 - [uv](https://github.com/astral-sh/uv) - Package manager
-- [dirctl](https://github.com/agntcy/dir/releases) - Directory CLI binary
 - Directory server instance (see setup below)
 
 ### 1. Server Setup

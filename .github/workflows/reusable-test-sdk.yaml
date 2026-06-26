@@ -10,10 +10,6 @@ on:
         required: false
         type: string
         description: "Override the version of the dir Helm chart to install for the tests."
-      dirctl_image_tag:
-        required: false
-        type: string
-        description: "Override the tag of the dir-ctl Docker image to use in the tests."
       sdk_ref:
         required: false
         type: string
@@ -70,6 +66,5 @@ jobs:
       - name: Test Python SDK
         env:
           DIR_CHART_VERSION: ${{ inputs.dir_chart_version }}
-          DIRCTL_IMAGE_TAG: ${{ inputs.dirctl_image_tag }}
         run: |
           task test
