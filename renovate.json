@@ -67,15 +67,6 @@
   },
   "packageRules": [
     {
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "enabled": false,
-      "description": [
-        "Ignore major dependency updates."
-      ]
-    },
-    {
       "groupName": "Python",
       "groupSlug": "python",
       "matchCategories": [
@@ -118,24 +109,12 @@
       ]
     },
     {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "enabled": true,
-      "description": [
-        "Allow major GitHub Actions updates (digest + semver pin format)."
-      ]
-    },
-    {
       "matchJsonata": [
         "$exists(vulnerabilityFixVersion) or isVulnerabilityAlert = true"
       ],
       "enabled": true,
       "description": [
-        "Always allow vulnerability/security fixes, even when other rules disable majors or specific dependencies."
+        "Always allow vulnerability/security fixes, even when other rules disable specific dependencies."
       ]
     }
   ],
