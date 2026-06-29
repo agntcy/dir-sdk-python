@@ -72,7 +72,10 @@ tasks:
         export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
 
         # Run SDK tests
-        '{{ .UV_BIN }}' run pytest
+        '{{ .UV_BIN }}' run pytest \
+          --cov=agntcy.dir_sdk \
+          --cov-report=xml:coverage.xml \
+          --cov-report=term-missing
 
         # Run SDK example to verify it works
         cd {{ .ROOT_DIR }}/examples

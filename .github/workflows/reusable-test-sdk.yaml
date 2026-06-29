@@ -73,3 +73,12 @@ jobs:
           DIRCTL_IMAGE_TAG: ${{ inputs.dirctl_image_tag }}
         run: |
           task test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v6.0.2
+        with:
+          files: coverage.xml
+          flags: integration
+          codecov_yml_path: codecov.yml
+          use_oidc: true
+          verbose: true
