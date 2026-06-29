@@ -1,7 +1,7 @@
 # Directory Python SDK
 
 [![PyPI version](https://img.shields.io/pypi/v/agntcy-dir.svg)](https://pypi.org/project/agntcy-dir/)
-
+[![Coverage](https://codecov.io/gh/agntcy/dir-sdk-python/branch/main/graph/badge.svg)](https://codecov.io/gh/agntcy/dir-sdk-python)
 ## Overview
 
 Dir Python SDK provides a simple way to interact with the Directory API.

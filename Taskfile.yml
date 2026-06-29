@@ -5,6 +5,7 @@ version: "3"
 
 vars:
   DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.5.0" }}'
+  DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.5.0" }}'
   DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.5.0" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
@@ -72,7 +73,10 @@ tasks:
         export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
 
         # Run SDK tests
-        '{{ .UV_BIN }}' run pytest
+        '{{ .UV_BIN }}' run pytest \
+          --cov=agntcy.dir_sdk \
+          --cov-report=xml:coverage.xml \
+          --cov-report=term-missing
 
         # Run SDK example to verify it works
         cd {{ .ROOT_DIR }}/examples
@@ -220,6 +224,7 @@ tasks:
 
         {{ .HELM_BIN }} install dir oci://ghcr.io/agntcy/dir/helm-charts/dir \
           --version="{{ .DIR_CHART_VERSION }}" \
+          --set apiserver.image.tag="{{ .DIR_IMAGE_TAG }}" \
           --set apiserver.image.pullSecrets="" \
           --set apiserver.service.type="NodePort" \
           --set apiserver.service.nodePort="{{.API_NODEPORT}}" \
