@@ -71,10 +71,7 @@ class TestClient(unittest.TestCase):
             record_refs=routing_v1.RecordRefs(refs=record_refs),
         )
 
-        try:
-            self.client.publish(publish_request)
-        except Exception as e:
-            assert e is None
+        self.client.publish(publish_request)
 
     def test_list(self) -> None:
         records = self.gen_records(1, "list")
@@ -216,53 +213,43 @@ class TestClient(unittest.TestCase):
         _ = routing_v1.PublishRequest(record_refs=publish_record_refs)
         unpublish_request = routing_v1.UnpublishRequest(record_refs=publish_record_refs)
 
-        try:
-            self.client.unpublish(unpublish_request)
-        except Exception as e:
-            assert e is None
+        self.client.unpublish(unpublish_request)
 
     def test_delete(self) -> None:
         records = self.gen_records(1, "delete")
         record_refs = self.client.push(records=records)
-        try:
-            self.client.delete(record_refs)
-        except Exception as e:
-            assert e is None
+        self.client.delete(record_refs)
 
     def test_push_referrer(self) -> None:
         records = self.gen_records(2, "push_referrer")
         record_refs = self.client.push(records=records)
 
-        try:
-            request = [
-                store_v1.PushReferrerRequest(
-                    record_ref=record_refs[0],
-                    type=sign_v1.Signature.DESCRIPTOR.full_name,
-                    data={
-                        "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                        "annotations": {"payload": "test-payload-data"},
-                    },
-                ),
-                store_v1.PushReferrerRequest(
-                    record_ref=record_refs[1],
-                    type=sign_v1.Signature.DESCRIPTOR.full_name,
-                    data={
-                        "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
-                        "annotations": {"payload": "test-payload-data"},
-                    },
-                ),
-            ]
+        request = [
+            store_v1.PushReferrerRequest(
+                record_ref=record_refs[0],
+                type=sign_v1.Signature.DESCRIPTOR.full_name,
+                data={
+                    "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
+                    "annotations": {"payload": "test-payload-data"},
+                },
+            ),
+            store_v1.PushReferrerRequest(
+                record_ref=record_refs[1],
+                type=sign_v1.Signature.DESCRIPTOR.full_name,
+                data={
+                    "signature": "dGVzdC1zaWduYXR1cmU=",  # base64 encoded "test-signature"
+                    "annotations": {"payload": "test-payload-data"},
+                },
+            ),
+        ]
 
-            response = self.client.push_referrer(req=request)
+        response = self.client.push_referrer(req=request)
 
-            assert response is not None
-            assert len(response) == 2
+        assert response is not None
+        assert len(response) == 2
 
-            for r in response:
-                assert isinstance(r, store_v1.PushReferrerResponse)
-
-        except Exception as e:
-            assert e is None
+        for r in response:
+            assert isinstance(r, store_v1.PushReferrerResponse)
 
     def test_pull_referrer(self) -> None:
         records = self.gen_records(2, "pull_referrer")
@@ -293,42 +280,32 @@ class TestClient(unittest.TestCase):
         for r in response:
             assert isinstance(r, store_v1.PushReferrerResponse)
 
-        try:
-            pull_request = [
-                store_v1.PullReferrerRequest(
-                    record_ref=record_refs[0],
-                    referrer_type=sign_v1.Signature.DESCRIPTOR.full_name,
-                ),
-                store_v1.PullReferrerRequest(
-                    record_ref=record_refs[1],
-                    referrer_type=sign_v1.Signature.DESCRIPTOR.full_name,
-                ),
-            ]
+        pull_request = [
+            store_v1.PullReferrerRequest(
+                record_ref=record_refs[0],
+                referrer_type=sign_v1.Signature.DESCRIPTOR.full_name,
+            ),
+            store_v1.PullReferrerRequest(
+                record_ref=record_refs[1],
+                referrer_type=sign_v1.Signature.DESCRIPTOR.full_name,
+            ),
+        ]
 
-            pull_response = self.client.pull_referrer(req=pull_request)
+        pull_response = self.client.pull_referrer(req=pull_request)
 
-            assert pull_response is not None
-            assert len(pull_response) == 2
+        assert pull_response is not None
+        assert len(pull_response) == 2
 
-            for pull_r in pull_response:
-                assert isinstance(pull_r, store_v1.PullReferrerResponse)
-        except Exception as e:
-            assert "pull referrer not implemented" in str(
-                e,
-            )  # Delete when the service implemented
-
-            # self.assertIsNone(e) # Uncomment when the service implemented
+        for pull_r in pull_response:
+            assert isinstance(pull_r, store_v1.PullReferrerResponse)
 
     def test_sign_and_verify(self) -> None:
         records = self.gen_records(2, "sign_verify")
         record_refs = self.client.push(records=records)
 
         # Remove existing cosign keys if any
-        try:
-            pathlib.Path("cosign.key").unlink()
-            pathlib.Path("cosign.pub").unlink()
-        except FileNotFoundError:
-            pass  # Clean state found
+        pathlib.Path("cosign.key").unlink(missing_ok=True)
+        pathlib.Path("cosign.pub").unlink(missing_ok=True)
 
         # Prepare cosign key pair
         key_password = "testing-key"
@@ -451,62 +428,45 @@ class TestClient(unittest.TestCase):
                         assert s_signer.oidc.issuer == r_signer.oidc.issuer
                         assert s_signer.oidc.subject == r_signer.oidc.subject
 
-        except Exception as e:
-            assert e is None, (
-                f"CID: {record_refs[0].cid} password: {key_provider.password!r} private_key: {key_provider.private_key}"
-            )
         finally:
-            pathlib.Path("cosign.key").unlink()
-            pathlib.Path("cosign.pub").unlink()
+            pathlib.Path("cosign.key").unlink(missing_ok=True)
+            pathlib.Path("cosign.pub").unlink(missing_ok=True)
 
         # Test invalid sign request
         invalid_request = sign_v1.SignRequest(
             record_ref=core_v1.RecordRef(cid="invalid-cid"),
             provider=request_key_provider,
         )
-        try:
+        with self.assertRaises(RuntimeError) as ctx:
             self.client.sign(invalid_request)
-        except RuntimeError as e:
-            assert "Failed to sign the object" in str(e)
+        self.assertIn("Failed to sign the object", str(ctx.exception))
 
     def test_sync(self) -> None:
-        try:
-            create_request = store_v1.CreateSyncRequest(
-                remote_directory_url=os.getenv(
-                    "DIRECTORY_SERVER_PEER1_ADDRESS",
-                    "0.0.0.0:8891",
-                ),
-            )
-            create_response = self.client.create_sync(create_request)
+        create_request = store_v1.CreateSyncRequest(
+            remote_directory_url=os.getenv(
+                "DIRECTORY_SERVER_PEER1_ADDRESS",
+                "0.0.0.0:8891",
+            ),
+        )
+        create_response = self.client.create_sync(create_request)
 
-            try:
-                assert uuid.UUID(create_response.sync_id)
-            except ValueError as e:
-                msg = f"Not an UUID: {create_response.sync_id}"
-                raise ValueError(msg) from e
+        uuid.UUID(create_response.sync_id)
 
-            list_request = store_v1.ListSyncsRequest()
-            list_response = self.client.list_syncs(list_request)
+        list_request = store_v1.ListSyncsRequest()
+        list_response = self.client.list_syncs(list_request)
 
-            for sync_item in list_response:
-                try:
-                    assert isinstance(sync_item, store_v1.ListSyncsItem)
-                    assert uuid.UUID(sync_item.sync_id)
-                except ValueError as e:
-                    msg = f"Not an UUID: {sync_item.sync_id}"
-                    raise ValueError(msg) from e
+        for sync_item in list_response:
+            assert isinstance(sync_item, store_v1.ListSyncsItem)
+            uuid.UUID(sync_item.sync_id)
 
-            get_request = store_v1.GetSyncRequest(sync_id=create_response.sync_id)
-            get_response = self.client.get_sync(get_request)
+        get_request = store_v1.GetSyncRequest(sync_id=create_response.sync_id)
+        get_response = self.client.get_sync(get_request)
 
-            assert isinstance(get_response, store_v1.GetSyncResponse)
-            assert get_response.sync_id == create_response.sync_id
+        assert isinstance(get_response, store_v1.GetSyncResponse)
+        assert get_response.sync_id == create_response.sync_id
 
-            delete_request = store_v1.DeleteSyncRequest(sync_id=create_response.sync_id)
-            self.client.delete_sync(delete_request)
-
-        except Exception as e:
-            assert e is None
+        delete_request = store_v1.DeleteSyncRequest(sync_id=create_response.sync_id)
+        self.client.delete_sync(delete_request)
 
     def test_listen(self) -> None:
         listen_request = events_v1.ListenRequest()
@@ -549,38 +509,27 @@ class TestClient(unittest.TestCase):
         records = self.gen_records(1, "publication")
         record_refs = self.client.push(records=records)
 
-        try:
-            create_request = routing_v1.PublishRequest(
-                record_refs=routing_v1.RecordRefs(refs=record_refs),
-            )
+        create_request = routing_v1.PublishRequest(
+            record_refs=routing_v1.RecordRefs(refs=record_refs),
+        )
 
-            create_response = self.client.create_publication(create_request)
+        create_response = self.client.create_publication(create_request)
 
-            try:
-                assert isinstance(create_response, routing_v1.CreatePublicationResponse)
-            except ValueError as e:
-                msg = "Not a CreatePublicationResponse object."
-                raise ValueError(msg) from e
+        assert isinstance(create_response, routing_v1.CreatePublicationResponse)
 
-            list_request = routing_v1.ListPublicationsRequest(limit=3)
-            list_response = self.client.list_publication(list_request)
+        list_request = routing_v1.ListPublicationsRequest(limit=3)
+        list_response = self.client.list_publication(list_request)
 
-            for publication_item in list_response:
-                try:
-                    assert isinstance(publication_item, routing_v1.ListPublicationsItem)
-                except ValueError as e:
-                    msg = "Not a ListPublicationsItem object."
-                    raise ValueError(msg) from e
+        for publication_item in list_response:
+            assert isinstance(publication_item, routing_v1.ListPublicationsItem)
 
-            get_request = routing_v1.GetPublicationRequest(
-                publication_id=create_response.publication_id
-            )
-            get_response = self.client.get_publication(get_request)
+        get_request = routing_v1.GetPublicationRequest(
+            publication_id=create_response.publication_id
+        )
+        get_response = self.client.get_publication(get_request)
 
-            assert isinstance(get_response, routing_v1.GetPublicationResponse)
-            assert get_response.publication_id == create_response.publication_id
-        except Exception as e:
-            assert e is None
+        assert isinstance(get_response, routing_v1.GetPublicationResponse)
+        assert get_response.publication_id == create_response.publication_id
 
     def test_resolve(self) -> None:
         # Push a record using built-in generator
