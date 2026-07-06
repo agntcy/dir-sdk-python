@@ -1,6 +1,5 @@
 # Copyright AGNTCY Contributors (https://github.com/agntcy)
 # SPDX-License-Identifier: Apache-2.0
-import json
 import os
 import pathlib
 import subprocess
@@ -12,7 +11,6 @@ import uuid
 import grpc
 from agntcy.dir_sdk.client import Client
 from agntcy.dir_sdk.models import (
-    catalog_v1,
     core_v1,
     events_v1,
     routing_v1,
@@ -573,65 +571,6 @@ class TestClient(unittest.TestCase):
             verify_response.error_message is not None
             or verify_response.error_message == ""
         )
-
-    def test_list_agents(self) -> None:
-        cid = self._push_catalog_fixture()
-        self._wait_for_catalog_entry(cid)
-
-        response = self.client.list_agents(catalog_v1.ListAgentsRequest())
-
-        assert isinstance(response, catalog_v1.ListAgentsResponse)
-        assert any(entry.identifier.find(cid) != -1 for entry in response.results)
-        assert any(
-            entry.display_name == "burger_seller_agent" for entry in response.results
-        )
-
-    def test_get_agent(self) -> None:
-        cid = self._push_catalog_fixture()
-        self._wait_for_catalog_entry(cid)
-
-        response = self.client.get_agent(catalog_v1.GetAgentRequest(cid=cid))
-
-        assert isinstance(response, catalog_v1.GetAgentResponse)
-        assert response.entry.identifier.find(cid) != -1
-
-    def test_get_well_known_catalog(self) -> None:
-        self._push_catalog_fixture()
-
-        response = self.client.get_well_known_catalog(
-            catalog_v1.GetWellKnownCatalogRequest()
-        )
-
-        assert isinstance(response, catalog_v1.GetWellKnownCatalogResponse)
-        assert response.catalog.spec_version
-        assert response.catalog.host.display_name
-
-    def test_export_agent(self) -> None:
-        cid = self._push_catalog_fixture()
-        self._wait_for_catalog_entry(cid)
-
-        response = self.client.export_agent(
-            catalog_v1.ExportAgentRequest(cid=cid, format="oasf")
-        )
-
-        assert response.data
-
-    def _push_catalog_fixture(self) -> str:
-        fixture_path = pathlib.Path(__file__).parent / "testdata" / "record_100.json"
-        with fixture_path.open(encoding="utf-8") as fixture_file:
-            record_data = json.load(fixture_file)
-        record_refs = self.client.push([core_v1.Record(data=record_data)])
-        return record_refs[0].cid
-
-    def _wait_for_catalog_entry(self, cid: str, timeout_sec: float = 30.0) -> None:
-        deadline = time.time() + timeout_sec
-        while time.time() < deadline:
-            response = self.client.list_agents(catalog_v1.ListAgentsRequest())
-            if any(entry.identifier.find(cid) != -1 for entry in response.results):
-                return
-            time.sleep(1)
-        msg = f"catalog entry for {cid} not found within {timeout_sec}s"
-        raise AssertionError(msg)
 
     def gen_records(self, count: int, test_function_name: str) -> list[core_v1.Record]:
         """

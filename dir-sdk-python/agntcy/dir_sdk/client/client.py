@@ -18,7 +18,6 @@ from agntcy.dir_sdk.client.auth.oauth_pkce import (
 from agntcy.dir_sdk.client.auth.session import OAuthSessionManager
 from agntcy.dir_sdk.client.auth.token_cache import CachedToken, TokenCache
 from agntcy.dir_sdk.client.config import Config
-from agntcy.dir_sdk.client.services.ai_finder import AIFinderService
 from agntcy.dir_sdk.client.services.events import EventService
 from agntcy.dir_sdk.client.services.naming import NamingService
 from agntcy.dir_sdk.client.services.publication import PublicationService
@@ -33,7 +32,6 @@ from agntcy.dir_sdk.client.transport.interceptors import (
     JWTAuthInterceptor,
 )
 from agntcy.dir_sdk.models import (
-    catalog_v1,
     core_v1,
     events_v1,
     naming_v1,
@@ -42,7 +40,6 @@ from agntcy.dir_sdk.models import (
     sign_v1,
     store_v1,
 )
-from google.api.httpbody_pb2 import HttpBody
 
 logger = logging.getLogger("client")
 
@@ -79,7 +76,6 @@ class Client:
         self.sync_client = store_v1.SyncServiceStub(channel)
         self.event_client = events_v1.EventServiceStub(channel)
         self.naming_client = naming_v1.NamingServiceStub(channel)
-        self.ai_finder_client = catalog_v1.AIFinderServiceStub(channel)
 
         # Service-layer adapters grouped by technical area.
         self.store_service = StoreService(self.store_client, logger)
@@ -90,7 +86,6 @@ class Client:
         self.sync_service = SyncService(self.sync_client, logger)
         self.event_service = EventService(self.event_client, logger)
         self.naming_service = NamingService(self.naming_client, logger)
-        self.ai_finder_service = AIFinderService(self.ai_finder_client, logger)
 
     def has_cached_oauth_token(self) -> bool:
         return self.oauth_session.has_access_token()
@@ -282,34 +277,6 @@ class Client:
         metadata: Sequence[tuple[str, str]] | None = None,
     ) -> sign_v1.VerifyResponse:
         return self.sign_service.verify(req, metadata=metadata)
-
-    def list_agents(
-        self,
-        req: catalog_v1.ListAgentsRequest,
-        metadata: Sequence[tuple[str, str]] | None = None,
-    ) -> catalog_v1.ListAgentsResponse:
-        return self.ai_finder_service.list_agents(req, metadata=metadata)
-
-    def get_agent(
-        self,
-        req: catalog_v1.GetAgentRequest,
-        metadata: Sequence[tuple[str, str]] | None = None,
-    ) -> catalog_v1.GetAgentResponse:
-        return self.ai_finder_service.get_agent(req, metadata=metadata)
-
-    def export_agent(
-        self,
-        req: catalog_v1.ExportAgentRequest,
-        metadata: Sequence[tuple[str, str]] | None = None,
-    ) -> HttpBody:
-        return self.ai_finder_service.export_agent(req, metadata=metadata)
-
-    def get_well_known_catalog(
-        self,
-        req: catalog_v1.GetWellKnownCatalogRequest,
-        metadata: Sequence[tuple[str, str]] | None = None,
-    ) -> catalog_v1.GetWellKnownCatalogResponse:
-        return self.ai_finder_service.get_well_known_catalog(req, metadata=metadata)
 
     def sign(self, req: sign_v1.SignRequest) -> None:
         self.sign_service.sign(req)
