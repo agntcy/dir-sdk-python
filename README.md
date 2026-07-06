@@ -27,6 +27,17 @@ The Directory Python SDK provides comprehensive access to all Directory APIs wit
 - **Content Discovery**: List and query published records across the network
 - **Network Management**: Unpublish records to remove them from network discovery
 
+### **Publication API**
+- **Publication Lifecycle**: Create, retrieve, and list record publications
+- **Stable References**: Get and manage publications by ID for long-lived record references
+
+### **Naming API**
+- **Name Resolution**: Resolve human-readable names to record references
+- **Verification Info**: Retrieve signing and verification metadata by name, version, or CID
+
+### **Events API**
+- **Real-time Streaming**: Subscribe to Directory events with a streaming gRPC listener
+
 ### **Signing and Verification**
 - **Local Signing**: Sign records locally using private keys or OIDC-based authentication. 
 Requires [dirctl](https://github.com/agntcy/dir/releases) binary to perform signing.
@@ -251,7 +262,7 @@ uv add agntcy-dir --index https://buf.build/gen/python
 
 ### Usage Examples
 
-See the [Example Python Project](../examples/example-py/) for a complete working example that demonstrates all SDK features.
+See the [Example Python Project](examples/) for a complete working example that demonstrates all SDK features.
 
 ```bash
 uv sync
