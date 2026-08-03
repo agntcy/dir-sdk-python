@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+from typing import ClassVar
 
 
 def _parse_bool_env(value: str | None, default: bool) -> bool:
@@ -83,7 +84,7 @@ class DockerConfig:
         mounts = []
         for mount in self.mounts:
             if mount.startswith("type=bind"):
-                type, src, dst = mount.split(",")
+                _type, src, _dst = mount.split(",")
                 _, src = src.split("=")
                 if os.path.isfile(src):
                     mounts.append(mount)
@@ -109,7 +110,7 @@ class Config:
     DEFAULT_OIDC_REDIRECT_URI: str = "http://localhost:8484/callback"
     DEFAULT_OIDC_CALLBACK_PORT: int = 8484
     DEFAULT_OIDC_AUTH_TIMEOUT: float = 300.0
-    DEFAULT_OIDC_SCOPES: list[str] = ["openid", "profile", "email"]
+    DEFAULT_OIDC_SCOPES: ClassVar[list[str]] = ["openid", "profile", "email"]
 
     def __init__(
         self,

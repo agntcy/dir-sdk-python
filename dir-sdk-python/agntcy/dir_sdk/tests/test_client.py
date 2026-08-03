@@ -477,8 +477,7 @@ class TestClient(unittest.TestCase):
 
         def read_stream() -> None:
             try:
-                for response in listen_stream:
-                    events.append(response)
+                events.extend(listen_stream)
             except grpc.RpcError as e:
                 if e.code() != grpc.StatusCode.CANCELLED:
                     raise

@@ -58,7 +58,7 @@ class CachedToken:
     created_at: datetime | None = None
 
     @classmethod
-    def from_json(cls, payload: dict[str, Any]) -> "CachedToken":
+    def from_json(cls, payload: dict[str, Any]) -> CachedToken:
         return cls(
             access_token=str(payload.get("access_token", "")),
             token_type=str(payload.get("token_type", "")),

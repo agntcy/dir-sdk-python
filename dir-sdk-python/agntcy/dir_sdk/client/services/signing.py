@@ -39,15 +39,15 @@ class SignService(RpcServiceBase):
             try:
                 return self._sign_client.Verify(req, metadata=metadata or ())
             except grpc.RpcError as e:
-                self._logger.exception("gRPC error during verify: %s", e)
+                self._logger.exception("gRPC error during verify")
                 raise RuntimeError(f"Verify failed: {e}") from e
             except Exception as e:
-                self._logger.exception("Verification failed: %s", e)
+                self._logger.exception("Verification failed")
                 raise RuntimeError(f"Verify failed: {e}") from e
         try:
             return verify_record(self._config, req)
         except Exception as e:
-            self._logger.exception("Verification operation failed: %s", e)
+            self._logger.exception("Verification operation failed")
             raise RuntimeError(f"Failed to verify the object: {e}") from e
 
     def sign(self, req: sign_v1.SignRequest) -> None:
@@ -56,5 +56,5 @@ class SignService(RpcServiceBase):
         except RuntimeError as e:
             raise RuntimeError(f"Failed to sign the object: {e}") from e
         except Exception as e:
-            self._logger.exception("Signing operation failed: %s", e)
+            self._logger.exception("Signing operation failed")
             raise RuntimeError(f"Failed to sign the object: {e}") from e
