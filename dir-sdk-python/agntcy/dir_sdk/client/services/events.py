@@ -29,11 +29,11 @@ class EventService(RpcServiceBase):
             return self._event_client.Listen(req, metadata=metadata)
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.CANCELLED:
-                self._logger.exception("gRPC listen stream was canceled: %s", e)
+                self._logger.exception("gRPC listen stream was canceled")
             else:
-                self._logger.exception("gRPC error during listen: %s", e)
+                self._logger.exception("gRPC error during listen")
             raise
         except Exception as e:
-            self._logger.exception("Unexpected error during listen: %s", e)
+            self._logger.exception("Unexpected error during listen")
             msg = f"Failed to listen: {e}"
             raise RuntimeError(msg) from e

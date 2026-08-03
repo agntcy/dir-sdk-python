@@ -179,7 +179,7 @@ def run_loopback_pkce_login(
     done = threading.Event()
 
     class _Handler(BaseHTTPRequestHandler):
-        def do_GET(self) -> None:  # noqa: N802
+        def do_GET(self) -> None:
             try:
                 req = urlparse(self.path)
                 if req.path != path:

@@ -21,11 +21,11 @@ class RpcServiceBase:
     def _invoke(self, op_name: str, error_message: str, call: Callable[[], T]) -> T:
         try:
             return cast(T, call())
-        except grpc.RpcError as e:
-            self._logger.exception("gRPC error during %s: %s", op_name, e)
+        except grpc.RpcError:
+            self._logger.exception("gRPC error during %s", op_name)
             raise
         except Exception as e:
-            self._logger.exception("Unexpected error during %s: %s", op_name, e)
+            self._logger.exception("Unexpected error during %s", op_name)
             msg = f"{error_message}: {e}"
             raise RuntimeError(msg) from e
 
