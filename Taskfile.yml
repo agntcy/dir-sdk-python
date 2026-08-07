@@ -14,11 +14,11 @@ vars:
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
 
   # renovate: datasource=github-tags depName=helm/helm versioning=semver
-  HELM_VERSION: "4.2.2"
+  HELM_VERSION: "4.2.3"
   HELM_BIN: "{{ .BIN_DIR }}/helm-{{.HELM_VERSION}}"
 
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
-  KUBECTL_VERSION: "1.36.2"
+  KUBECTL_VERSION: "1.36.3"
   KUBECTL_BIN: "{{ .BIN_DIR }}/kubectl-{{.KUBECTL_VERSION}}"
 
   # renovate: datasource=go depName=sigs.k8s.io/kind versioning=semver
@@ -26,12 +26,12 @@ vars:
   KIND_BIN: "{{ .BIN_DIR }}/kind-{{.KIND_VERSION}}"
 
   # renovate: datasource=github-releases depName=astral-sh/uv versioning=semver
-  UV_VERSION: "0.11.28"
+  UV_VERSION: "0.12.0"
   UV_BIN: "{{ .BIN_DIR }}/uv-{{.UV_VERSION}}"
   UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN | default "" }}'
 
   # renovate: datasource=github-releases depName=sigstore/cosign versioning=semver
-  COSIGN_VERSION: "3.1.1"
+  COSIGN_VERSION: "3.1.2"
   COSIGN_BIN: "{{ .BIN_DIR }}/cosign-{{.COSIGN_VERSION}}"
 
   KIND_CLUSTER_NAME: "sdk-py-test"
