@@ -9,7 +9,7 @@ vars:
   DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.5.0" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
-  RENOVATE_VERSION: "44.4.5"
+  RENOVATE_VERSION: "44.7.2"
 
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
 
@@ -26,7 +26,7 @@ vars:
   KIND_BIN: "{{ .BIN_DIR }}/kind-{{.KIND_VERSION}}"
 
   # renovate: datasource=github-releases depName=astral-sh/uv versioning=semver
-  UV_VERSION: "0.12.0"
+  UV_VERSION: "0.12.1"
   UV_BIN: "{{ .BIN_DIR }}/uv-{{.UV_VERSION}}"
   UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN | default "" }}'
 
