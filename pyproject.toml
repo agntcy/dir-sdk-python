@@ -21,8 +21,8 @@ dev = [
     "pytest>=9.0.0",
     "pytest-cov>=6.0.0",
     "uuid>=1.30",
-    "mypy==2.3.0",
-    "ruff==0.16.2",
+    "mypy==2.3.1",
+    "ruff==0.16.3",
     "pydantic>=2.13.4",
 ]
 
