@@ -9,12 +9,12 @@ vars:
   DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.5.0" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
-  RENOVATE_VERSION: "44.14.3"
+  RENOVATE_VERSION: "44.31.0"
 
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
 
   # renovate: datasource=github-tags depName=helm/helm versioning=semver
-  HELM_VERSION: "4.2.3"
+  HELM_VERSION: "4.2.4"
   HELM_BIN: "{{ .BIN_DIR }}/helm-{{.HELM_VERSION}}"
 
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
@@ -26,7 +26,7 @@ vars:
   KIND_BIN: "{{ .BIN_DIR }}/kind-{{.KIND_VERSION}}"
 
   # renovate: datasource=github-releases depName=astral-sh/uv versioning=semver
-  UV_VERSION: "0.12.2"
+  UV_VERSION: "0.12.5"
   UV_BIN: "{{ .BIN_DIR }}/uv-{{.UV_VERSION}}"
   UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN | default "" }}'
 
