@@ -9,7 +9,7 @@ vars:
   DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.5.0" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
-  RENOVATE_VERSION: "44.31.0"
+  RENOVATE_VERSION: "44.33.2"
 
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
 
