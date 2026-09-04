@@ -110,13 +110,23 @@ tasks:
       - "{{.UV_BIN}} sync --all-packages"
 
   lint:
-    desc: Lint Python SDK (ruff check + format check + mypy)
+    desc: Lint Python SDK (ruff check + format check + mypy + lockfile sync)
     deps:
       - task: deps:packages
     cmds:
       - "{{.UV_BIN}} run ruff check dir-sdk-python examples"
       - "{{.UV_BIN}} run ruff format --check dir-sdk-python examples"
       - "{{.UV_BIN}} run mypy dir-sdk-python examples"
+      - task: lock:check
+
+  lock:check:
+    desc: Verify uv.lock is in sync with pyproject.toml (SDK + examples)
+    internal: true
+    deps:
+      - task: deps:uv
+    cmds:
+      - "{{.UV_BIN}} lock --check"
+      - "cd examples && {{.UV_BIN}} lock --check"
 
   lint:fix:
     desc: Auto-fix Python lint and formatting (local dev)
