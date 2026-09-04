@@ -12,8 +12,8 @@ Create a branch for the new release:
    - `examples/pyproject.toml`
    - `.github/ISSUE_TEMPLATE/bug_report.yml`
 2. Update the dependencies if necessary:
-   - [agntcy-dir-grpc-python](https://buf.build/agntcy/dir/sdks/v1.5.0%3Agrpc/python) (Buf SDK)
-   - [agntcy-dir-protocolbuffers-python](https://buf.build/agntcy/dir/sdks/v1.5.0%3Aprotocolbuffers/python) (Buf SDK)
+   - [agntcy-dir-grpc-python](https://buf.build/agntcy/dir/sdks/v1.7.0%3Agrpc/python) (Buf SDK)
+   - [agntcy-dir-protocolbuffers-python](https://buf.build/agntcy/dir/sdks/v1.7.0%3Aprotocolbuffers/python) (Buf SDK)
    - `.github/workflows/ci.yaml` (dir & dir-ctl version)
 3. Add an entry to `CHANGELOG.md`
 

@@ -4,9 +4,9 @@
 version: "3"
 
 vars:
-  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.5.0" }}'
-  DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.5.0" }}'
-  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.5.0" }}'
+  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.7.0" }}'
+  DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.7.0" }}'
+  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.7.0" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
   RENOVATE_VERSION: "44.48.3"
