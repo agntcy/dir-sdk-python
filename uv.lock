@@ -12,6 +12,7 @@ version = "1.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "agntcy-dir-grpc-python" },
+    { name = "agntcy-dir-protocolbuffers-pyi" },
     { name = "agntcy-dir-protocolbuffers-python" },
     { name = "authlib" },
     { name = "grpcio" },
@@ -34,8 +35,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agntcy-dir-grpc-python", specifier = "==1.83.1.3.20260818142512+ad29ba5021f2", index = "https://buf.build/gen/python" },
-    { name = "agntcy-dir-protocolbuffers-python", specifier = "==36.1.0.1.20260818142512+ad29ba5021f2", index = "https://buf.build/gen/python" },
+    { name = "agntcy-dir-grpc-python", specifier = "==1.83.1.3.20260922140046+fd75d73eab52", index = "https://buf.build/gen/python" },
+    { name = "agntcy-dir-protocolbuffers-pyi", specifier = "==36.2.0.1.20260922140046+fd75d73eab52", index = "https://buf.build/gen/python" },
+    { name = "agntcy-dir-protocolbuffers-python", specifier = "==36.1.0.1.20260922140046+fd75d73eab52", index = "https://buf.build/gen/python" },
     { name = "authlib", specifier = ">=1.6.9" },
     { name = "grpcio", specifier = ">=1.78.0" },
     { name = "httpx", specifier = ">=0.28.1" },
@@ -57,7 +59,7 @@ dev = [
 
 [[package]]
 name = "agntcy-dir-grpc-python"
-version = "1.83.1.3.20260818142512+ad29ba5021f2"
+version = "1.83.1.3.20260922140046+fd75d73eab52"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "agntcy-dir-protocolbuffers-python" },
@@ -66,12 +68,12 @@ dependencies = [
     { name = "grpcio" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/agntcy-dir-grpc-python/agntcy_dir_grpc_python-1.83.1.3.20260818142512+ad29ba5021f2-py3-none-any.whl", upload-time = "2026-09-03T19:35:36Z" },
+    { url = "https://buf.build/gen/python/agntcy-dir-grpc-python/agntcy_dir_grpc_python-1.83.1.3.20260922140046+fd75d73eab52-py3-none-any.whl", upload-time = "2026-09-22T14:00:46Z" },
 ]
 
 [[package]]
 name = "agntcy-dir-protocolbuffers-pyi"
-version = "36.1.0.1.20260903182148+3f75f462defd"
+version = "36.2.0.1.20260922140046+fd75d73eab52"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "bufbuild-protovalidate-protocolbuffers-pyi" },
@@ -80,12 +82,12 @@ dependencies = [
     { name = "types-protobuf" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-pyi/agntcy_dir_protocolbuffers_pyi-36.1.0.1.20260903182148+3f75f462defd-py3-none-any.whl", upload-time = "2026-09-03T18:21:48Z" },
+    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-pyi/agntcy_dir_protocolbuffers_pyi-36.2.0.1.20260922140046+fd75d73eab52-py3-none-any.whl", upload-time = "2026-09-22T14:00:46Z" },
 ]
 
 [[package]]
 name = "agntcy-dir-protocolbuffers-python"
-version = "36.1.0.1.20260818142512+ad29ba5021f2"
+version = "36.1.0.1.20260922140046+fd75d73eab52"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "agntcy-dir-protocolbuffers-pyi" },
@@ -94,7 +96,7 @@ dependencies = [
     { name = "protobuf" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-python/agntcy_dir_protocolbuffers_python-36.1.0.1.20260818142512+ad29ba5021f2-py3-none-any.whl", upload-time = "2026-09-01T18:58:55Z" },
+    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-python/agntcy_dir_protocolbuffers_python-36.1.0.1.20260922140046+fd75d73eab52-py3-none-any.whl", upload-time = "2026-09-22T14:00:46Z" },
 ]
 
 [[package]]
@@ -188,14 +190,14 @@ wheels = [
 
 [[package]]
 name = "bufbuild-protovalidate-protocolbuffers-pyi"
-version = "36.1.0.1.20260825204119+511051f7f437"
+version = "36.2.0.1.20260825204119+511051f7f437"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "protobuf" },
     { name = "types-protobuf" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/bufbuild-protovalidate-protocolbuffers-pyi/bufbuild_protovalidate_protocolbuffers_pyi-36.1.0.1.20260825204119+511051f7f437-py3-none-any.whl", upload-time = "2026-09-01T18:58:50Z" },
+    { url = "https://buf.build/gen/python/bufbuild-protovalidate-protocolbuffers-pyi/bufbuild_protovalidate_protocolbuffers_pyi-36.2.0.1.20260825204119+511051f7f437-py3-none-any.whl", upload-time = "2026-09-19T01:44:49Z" },
 ]
 
 [[package]]
@@ -475,7 +477,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -496,14 +498,14 @@ wheels = [
 
 [[package]]
 name = "googleapis-googleapis-protocolbuffers-pyi"
-version = "36.1.0.1.20260414192239+c17df5b2beca"
+version = "36.2.0.1.20260414192239+c17df5b2beca"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "protobuf" },
     { name = "types-protobuf" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/googleapis-googleapis-protocolbuffers-pyi/googleapis_googleapis_protocolbuffers_pyi-36.1.0.1.20260414192239+c17df5b2beca-py3-none-any.whl", upload-time = "2026-09-01T18:58:50Z" },
+    { url = "https://buf.build/gen/python/googleapis-googleapis-protocolbuffers-pyi/googleapis_googleapis_protocolbuffers_pyi-36.2.0.1.20260414192239+c17df5b2beca-py3-none-any.whl", upload-time = "2026-09-19T01:44:49Z" },
 ]
 
 [[package]]
