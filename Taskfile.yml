@@ -4,9 +4,9 @@
 version: "3"
 
 vars:
-  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.7.0" }}'
-  DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.7.0" }}'
-  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.7.0" }}'
+  DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "0.0.0-latest" }}'
+  DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "latest" }}'
+  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "latest" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
   RENOVATE_VERSION: "44.115.13"
@@ -240,7 +240,6 @@ tasks:
           --set apiserver.service.nodePort="{{.API_NODEPORT}}" \
           --set apiserver.service.metricsNodePort="{{.METRICS_NODEPORT}}" \
           {{ if .DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL }}--set apiserver.config.publication.scheduler_interval="{{ .DIRECTORY_SERVER_PUBLICATION_SCHEDULER_INTERVAL }}"{{ end }} \
-          {{ if .DIRECTORY_SERVER_NAMING_TTL }}--set apiserver.config.naming.ttl="{{ .DIRECTORY_SERVER_NAMING_TTL }}"{{ end }} \
           --set apiserver.config.routing.refresh_interval="1s" \
           --set-json 'apiserver.config.routing.bootstrap_peers=[]' \
           --set apiserver.secrets.ociAuth.username="${HTPASSWD_USERNAME}" \
