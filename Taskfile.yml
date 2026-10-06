@@ -4,8 +4,11 @@
 version: "3"
 
 vars:
+  # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
   DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.7.1" }}'
+  # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
   DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.7.1" }}'
+  # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
   DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.7.1" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver

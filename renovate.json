@@ -32,6 +32,18 @@
       "description": [
         "Custom dependency manager for updating image tag@digest defined in Taskfile."
       ]
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)Taskfile[^/]*\\.yml$/"
+      ],
+      "matchStrings": [
+        "(?m)^\\s*#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\s*\\r?\\n\\s*[A-Z0-9_]+:\\s+'\\{\\{\\s*\\.[A-Z0-9_]+\\s*\\|\\s*default\\s+\"(?<currentValue>[^\"]+)\"\\s*\\}\\}'\\s*$"
+      ],
+      "description": [
+        "Custom dependency manager for updating Directory chart, image and dirctl versions defined as Taskfile defaults."
+      ]
     }
   ],
   "enabled": true,
@@ -79,6 +91,19 @@
       "description": [
         "Add python label to PRs which bumps python dependencies.",
         "Group Python dependency updates in single PR."
+      ]
+    },
+    {
+      "groupName": "Directory",
+      "groupSlug": "directory",
+      "matchDepNames": [
+        "agntcy/dir"
+      ],
+      "addLabels": [
+        "build"
+      ],
+      "description": [
+        "Group Directory chart, image and dirctl version bumps from Taskfile in a single PR."
       ]
     },
     {
