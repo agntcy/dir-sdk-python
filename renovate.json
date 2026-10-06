@@ -46,6 +46,38 @@
       ]
     }
   ],
+  "customDatasources": {
+    "buf-dir-grpc-python": {
+      "defaultRegistryUrlTemplate": "https://buf.build/gen/npm/v1/@buf/agntcy_dir.bufbuild_es",
+      "format": "json",
+      "transformTemplates": [
+        "(\n  $tags := $.`dist-tags`;\n  $stamps := $keys($tags)[$contains($, /^label-v\\d+\\.\\d+\\.\\d+$/)].$lookup($tags, $).$match($, /-(\\d{14})-([a-f0-9]{12})\\.\\d+$/).groups;\n  {\"releases\": $distinct($keys($tags)[$contains($, /^label-v\\d+\\.\\d+\\.\\d+$/)].$lookup($tags, $).$match($, /-(\\d{14})-([a-f0-9]{12})\\.\\d+$/).(\"1.83.1.3.\" & groups[0] & \"+\" & groups[1])).{\"version\": $}}\n)"
+      ],
+      "description": [
+        "Releases of agntcy-dir-grpc-python generated from commits labeled with a Directory release tag (label-vX.Y.Z), using the pinned plugin version 1.83.1.3."
+      ]
+    },
+    "buf-dir-protocolbuffers-python": {
+      "defaultRegistryUrlTemplate": "https://buf.build/gen/npm/v1/@buf/agntcy_dir.bufbuild_es",
+      "format": "json",
+      "transformTemplates": [
+        "(\n  $tags := $.`dist-tags`;\n  $stamps := $keys($tags)[$contains($, /^label-v\\d+\\.\\d+\\.\\d+$/)].$lookup($tags, $).$match($, /-(\\d{14})-([a-f0-9]{12})\\.\\d+$/).groups;\n  {\"releases\": $distinct($keys($tags)[$contains($, /^label-v\\d+\\.\\d+\\.\\d+$/)].$lookup($tags, $).$match($, /-(\\d{14})-([a-f0-9]{12})\\.\\d+$/).(\"36.1.0.1.\" & groups[0] & \"+\" & groups[1])).{\"version\": $}}\n)"
+      ],
+      "description": [
+        "Releases of agntcy-dir-protocolbuffers-python generated from commits labeled with a Directory release tag (label-vX.Y.Z), using the pinned plugin version 36.1.0.1."
+      ]
+    },
+    "buf-dir-protocolbuffers-pyi": {
+      "defaultRegistryUrlTemplate": "https://buf.build/gen/npm/v1/@buf/agntcy_dir.bufbuild_es",
+      "format": "json",
+      "transformTemplates": [
+        "(\n  $tags := $.`dist-tags`;\n  $stamps := $keys($tags)[$contains($, /^label-v\\d+\\.\\d+\\.\\d+$/)].$lookup($tags, $).$match($, /-(\\d{14})-([a-f0-9]{12})\\.\\d+$/).groups;\n  {\"releases\": $distinct($keys($tags)[$contains($, /^label-v\\d+\\.\\d+\\.\\d+$/)].$lookup($tags, $).$match($, /-(\\d{14})-([a-f0-9]{12})\\.\\d+$/).(\"36.2.0.1.\" & groups[0] & \"+\" & groups[1])).{\"version\": $}}\n)"
+      ],
+      "description": [
+        "Releases of agntcy-dir-protocolbuffers-pyi generated from commits labeled with a Directory release tag (label-vX.Y.Z), using the pinned plugin version 36.2.0.1."
+      ]
+    }
+  },
   "enabled": true,
   "minimumReleaseAge": "7 days",
   "schedule": [
@@ -66,9 +98,6 @@
     "dependencies"
   ],
   "ignoreDeps": [
-    "agntcy-dir-grpc-python",
-    "agntcy-dir-protocolbuffers-python",
-    "agntcy-dir-protocolbuffers-pyi",
     "bufbuild-protovalidate-grpc-python",
     "bufbuild-protovalidate-protocolbuffers-python",
     "bufbuild-protovalidate-protocolbuffers-pyi"
@@ -76,7 +105,9 @@
   "osvVulnerabilityAlerts": true,
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["at any time"]
+    "schedule": [
+      "at any time"
+    ]
   },
   "packageRules": [
     {
@@ -91,6 +122,63 @@
       "description": [
         "Add python label to PRs which bumps python dependencies.",
         "Group Python dependency updates in single PR."
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "agntcy-dir-grpc-python"
+      ],
+      "overrideDatasource": "custom.buf-dir-grpc-python",
+      "registryUrls": [
+        "https://buf.build/gen/npm/v1/@buf/agntcy_dir.bufbuild_es"
+      ],
+      "versioning": "pep440",
+      "groupName": "Directory",
+      "groupSlug": "directory",
+      "addLabels": [
+        "build"
+      ],
+      "description": [
+        "Bump only to commits labeled with a Directory release tag, in the same PR as the Directory version bump.",
+        "The plugin version prefix (1.83.1.3) is defined in the custom datasource and has to be bumped manually."
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "agntcy-dir-protocolbuffers-python"
+      ],
+      "overrideDatasource": "custom.buf-dir-protocolbuffers-python",
+      "registryUrls": [
+        "https://buf.build/gen/npm/v1/@buf/agntcy_dir.bufbuild_es"
+      ],
+      "versioning": "pep440",
+      "groupName": "Directory",
+      "groupSlug": "directory",
+      "addLabels": [
+        "build"
+      ],
+      "description": [
+        "Bump only to commits labeled with a Directory release tag, in the same PR as the Directory version bump.",
+        "The plugin version prefix (36.1.0.1) is defined in the custom datasource and has to be bumped manually."
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "agntcy-dir-protocolbuffers-pyi"
+      ],
+      "overrideDatasource": "custom.buf-dir-protocolbuffers-pyi",
+      "registryUrls": [
+        "https://buf.build/gen/npm/v1/@buf/agntcy_dir.bufbuild_es"
+      ],
+      "versioning": "pep440",
+      "groupName": "Directory",
+      "groupSlug": "directory",
+      "addLabels": [
+        "build"
+      ],
+      "description": [
+        "Bump only to commits labeled with a Directory release tag, in the same PR as the Directory version bump.",
+        "The plugin version prefix (36.2.0.1) is defined in the custom datasource and has to be bumped manually."
       ]
     },
     {
