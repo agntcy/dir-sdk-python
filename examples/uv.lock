@@ -39,7 +39,7 @@ dev = [
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pytest", specifier = ">=9.0.0" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
-    { name = "ruff", specifier = "==0.16.8" },
+    { name = "ruff", specifier = "==0.16.9" },
     { name = "uuid", specifier = ">=1.30" },
 ]
 
