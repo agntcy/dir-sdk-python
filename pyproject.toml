@@ -41,6 +41,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
+# The native wrapper libraries are gitignored build outputs but must ship.
+artifacts = ["*.dylib", "*.so", "*.dll"]
 exclude = ["/dir-sdk-python/agntcy/dir_sdk/tests"]
 
 [tool.hatch.build.targets.wheel]

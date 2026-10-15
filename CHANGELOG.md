@@ -3,6 +3,16 @@
 [agntcy/dir]: https://github.com/agntcy/dir
 [agntcy/dir-sdk-python]: https://github.com/agntcy/dir-sdk-python
 
+## Unreleased
+
+### Changed
+
+- Signing and local verification now call the `libdirwrapper` native library (from `wrapperlib` in [agntcy/dir][agntcy/dir]) through `ctypes` instead of running `dirctl`.
+
+### Removed
+
+- **Breaking:** `dirctl_path`, `docker_config`, `DockerConfig`, `Config.get_dirctl` and the `DIRCTL_PATH`, `DIRCTL_IMAGE` and `DIRCTL_IMAGE_TAG` environment variables. The `dirctl` binary and Docker image are no longer required.
+
 ## 1.7.0 (2026-09-04)
 
 ### Changed

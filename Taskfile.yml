@@ -9,7 +9,9 @@ vars:
   # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
   DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.7.1" }}'
   # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
-  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.7.1" }}'
+
+  # Checkout of agntcy/dir used to build the native wrapper library.
+  DIR_REPO: '{{ .DIR_REPO | default "../dir" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
   RENOVATE_VERSION: "44.141.0"
@@ -72,7 +74,6 @@ tasks:
       - defer: { task: test-env:delete }
       - task: test-env:create
       - |
-        export DIRCTL_IMAGE_TAG="{{ .DIRCTL_IMAGE_TAG }}"
         export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
 
         # Run SDK tests
@@ -91,7 +92,7 @@ tasks:
     deps:
       - task: deps:uv
       - task: deps:cosign
-      - task: deps:dir-ctl
+      - task: deps:native-lib
     cmds:
       - "{{.UV_BIN}} sync --all-packages"
 
@@ -400,16 +401,19 @@ tasks:
     status:
       - test -x {{.COSIGN_BIN}}
 
-  deps:dir-ctl:
-    desc: Install dir-ctl
+  deps:native-lib:
+    desc: Build the Directory wrapper library and bundle it into the SDK
     internal: true
     run: once
     vars:
-      DIRCTL_IMAGE_TAG: "{{ .DIRCTL_IMAGE_TAG }}"
+      LIB_DIR: "{{ .ROOT_DIR }}/dir-sdk-python/agntcy/dir_sdk/client/native/lib"
     preconditions:
-      - which docker
+      - sh: test -d '{{ .DIR_REPO }}/wrapperlib'
+        msg: "Set DIR_REPO to an agntcy/dir checkout that contains wrapperlib/"
     cmds:
-      - docker image pull ghcr.io/agntcy/dir-ctl:{{ .DIRCTL_IMAGE_TAG }}
+      - mkdir -p '{{ .LIB_DIR }}'
+      - task -d '{{ .DIR_REPO }}' wrapperlib:compile
+      - cp {{ .DIR_REPO }}/.bin/libdirwrapper-{{ OS }}-{{ ARCH }}.* '{{ .LIB_DIR }}/'
 
   deps:renovate:
     desc: Install Renovate

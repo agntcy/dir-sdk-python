@@ -18,7 +18,7 @@ Source and issue tracker: [github.com/agntcy/dir-sdk-python](https://github.com/
 | **Naming** | `resolve`, `get_verification_info` |
 | **Sync** | `create_sync`, `get_sync`, `list_syncs`, `delete_sync` |
 | **Events** | `listen` (server-streaming) |
-| **Signing** | `sign` (local via `dirctl`), `verify` (remote gRPC) |
+| **Signing** | `sign` (local via the native library), `verify` (remote gRPC) |
 
 ## Installation
 
@@ -43,7 +43,6 @@ Requires [uv](https://github.com/astral-sh/uv).
 ```bash
 # Insecure (local development)
 export DIRECTORY_CLIENT_SERVER_ADDRESS="localhost:8888"
-export DIRCTL_PATH="/path/to/dirctl"
 
 # X.509 / SPIFFE
 export DIRECTORY_CLIENT_SERVER_ADDRESS="localhost:8888"
@@ -78,7 +77,6 @@ from agntcy.dir_sdk.client import Config, Client
 # Insecure (local development only)
 config = Config(
     server_address="localhost:8888",
-    dirctl_path="/usr/local/bin/dirctl",
 )
 client = Client(config)
 
@@ -100,29 +98,13 @@ config = Config(
 client = Client(config)
 ```
 
-### Docker-based dirctl
+### Native library
 
-If you don't have `dirctl` installed locally you can run it via Docker by passing a
-`DockerConfig` instead of `dirctl_path`:
-
-```python
-from agntcy.dir_sdk.client import Config, Client
-from agntcy.dir_sdk.client.config import DockerConfig
-
-config = Config(
-    server_address="localhost:8888",
-    docker_config=DockerConfig(
-        dirctl_image="ghcr.io/agntcy/dir-ctl",
-        dirctl_image_tag="latest",
-    ),
-)
-client = Client(config)
-```
-
-!!! note
-
-    `dirctl_path` and `docker_config` are mutually exclusive. Setting both raises a
-    `ValueError`.
+Signing and local verification run in the `libdirwrapper` C-shared library bundled
+in the wheel (`agntcy/dir_sdk/client/native/lib`). To use a different build, set
+`DIR_WRAPPER_LIB` to its path. Build it with `task wrapperlib:compile` in the
+[agntcy/dir](https://github.com/agntcy/dir) repository; the library is
+platform-specific (it needs CGO and a native toolchain per OS/architecture).
 
 ## OAuth 2.0 / OIDC bearer auth
 
@@ -271,7 +253,7 @@ for event in stream:
 ```python
 from agntcy.dir_sdk.models import sign_v1
 
-# Sign a record locally (requires dirctl binary)
+# Sign a record locally (uses the bundled native library)
 client.sign(sign_v1.SignRequest(cid=cid))
 
 # Verify a record signature via gRPC
@@ -310,7 +292,6 @@ Common status codes: `NOT_FOUND`, `ALREADY_EXISTS`, `UNAVAILABLE`, `PERMISSION_D
 
 - Python 3.10 or higher
 - [uv](https://github.com/astral-sh/uv) package manager
-- [dirctl](https://github.com/agntcy/dir/releases) CLI binary (signing operations only)
 - A running Directory server — see [Quickstart](dir-quickstart.md) or
   [Kubernetes Deployment](dir-deployment-kubernetes.md)
 

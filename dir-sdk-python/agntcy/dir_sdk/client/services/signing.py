@@ -6,12 +6,11 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 import grpc
 from agntcy.dir_sdk.client.config import Config
-from agntcy.dir_sdk.client.dirctl.signing import sign_record
-from agntcy.dir_sdk.client.dirctl.verification import verify_record
+from agntcy.dir_sdk.client.native import sign_record, verify_record
 from agntcy.dir_sdk.client.services.base import RpcServiceBase
 from agntcy.dir_sdk.models import sign_v1
 
@@ -22,10 +21,15 @@ class SignService(RpcServiceBase):
         config: Config,
         sign_client: sign_v1.SignServiceStub,
         logger: logging.Logger,
+        token_provider: Callable[[], str] | None = None,
     ) -> None:
         super().__init__(logger)
         self._config = config
+        self._token_provider = token_provider
         self._sign_client = sign_client
+
+    def _auth_token(self) -> str:
+        return self._token_provider() if self._token_provider else ""
 
     def verify(
         self,
@@ -45,14 +49,14 @@ class SignService(RpcServiceBase):
                 self._logger.exception("Verification failed")
                 raise RuntimeError(f"Verify failed: {e}") from e
         try:
-            return verify_record(self._config, req)
+            return verify_record(self._config, req, self._auth_token())
         except Exception as e:
             self._logger.exception("Verification operation failed")
             raise RuntimeError(f"Failed to verify the object: {e}") from e
 
     def sign(self, req: sign_v1.SignRequest) -> None:
         try:
-            sign_record(self._config, req)
+            sign_record(self._config, req, self._auth_token())
         except RuntimeError as e:
             raise RuntimeError(f"Failed to sign the object: {e}") from e
         except Exception as e:

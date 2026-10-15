@@ -82,10 +82,23 @@ class Client:
         self.routing_service = RoutingService(self.routing_client, logger)
         self.publication_service = PublicationService(self.publication_client, logger)
         self.search_service = SearchService(self.search_client, logger)
-        self.sign_service = SignService(self.config, self.sign_client, logger)
+        self.sign_service = SignService(
+            self.config,
+            self.sign_client,
+            logger,
+            token_provider=self._native_auth_token,
+        )
         self.sync_service = SyncService(self.sync_client, logger)
         self.event_service = EventService(self.event_client, logger)
         self.naming_service = NamingService(self.naming_client, logger)
+
+    def _native_auth_token(self) -> str:
+        # The native library cannot share the Python OAuth holder, so hand it
+        # the current access token when OIDC login is in use.
+        holder = self.oauth_session.oauth_holder
+        if self.config.auth_mode == "oidc" and holder is not None:
+            return holder.get_access_token()
+        return ""
 
     def has_cached_oauth_token(self) -> bool:
         return self.oauth_session.has_access_token()

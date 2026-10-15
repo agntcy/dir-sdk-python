@@ -9,6 +9,8 @@
 
 # Builds
 .bin/
+dir-sdk-python/agntcy/dir_sdk/client/native/lib/*
+!dir-sdk-python/agntcy/dir_sdk/client/native/lib/.gitkeep
 
 # Python
 dist/
