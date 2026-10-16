@@ -3,6 +3,14 @@
 [agntcy/dir]: https://github.com/agntcy/dir
 [agntcy/dir-sdk-python]: https://github.com/agntcy/dir-sdk-python
 
+## 1.8.0 (2026-10-16)
+
+### Changed
+
+- **Breaking:** use identity instead of naming (#146).
+- Updated buf-generated SDK dependencies to track [agntcy/dir][agntcy/dir] `v1.8.0`.
+- Bumped the directory chart and `dirctl` image used in CI to `v1.8.0`.
+
 ## 1.7.0 (2026-09-04)
 
 ### Changed
