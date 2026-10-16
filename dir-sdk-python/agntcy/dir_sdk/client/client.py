@@ -19,7 +19,7 @@ from agntcy.dir_sdk.client.auth.session import OAuthSessionManager
 from agntcy.dir_sdk.client.auth.token_cache import CachedToken, TokenCache
 from agntcy.dir_sdk.client.config import Config
 from agntcy.dir_sdk.client.services.events import EventService
-from agntcy.dir_sdk.client.services.naming import NamingService
+from agntcy.dir_sdk.client.services.identity import IdentityService
 from agntcy.dir_sdk.client.services.publication import PublicationService
 from agntcy.dir_sdk.client.services.routing import RoutingService
 from agntcy.dir_sdk.client.services.search import SearchService
@@ -34,7 +34,7 @@ from agntcy.dir_sdk.client.transport.interceptors import (
 from agntcy.dir_sdk.models import (
     core_v1,
     events_v1,
-    naming_v1,
+    identity_v1,
     routing_v1,
     search_v1,
     sign_v1,
@@ -75,7 +75,7 @@ class Client:
         self.sign_client = sign_v1.SignServiceStub(channel)
         self.sync_client = store_v1.SyncServiceStub(channel)
         self.event_client = events_v1.EventServiceStub(channel)
-        self.naming_client = naming_v1.NamingServiceStub(channel)
+        self.identity_client = identity_v1.IdentityServiceStub(channel)
 
         # Service-layer adapters grouped by technical area.
         self.store_service = StoreService(self.store_client, logger)
@@ -85,7 +85,7 @@ class Client:
         self.sign_service = SignService(self.config, self.sign_client, logger)
         self.sync_service = SyncService(self.sync_client, logger)
         self.event_service = EventService(self.event_client, logger)
-        self.naming_service = NamingService(self.naming_client, logger)
+        self.identity_service = IdentityService(self.identity_client, logger)
 
     def has_cached_oauth_token(self) -> bool:
         return self.oauth_session.has_access_token()
@@ -254,8 +254,8 @@ class Client:
         name: str,
         version: str | None = None,
         metadata: Sequence[tuple[str, str]] | None = None,
-    ) -> naming_v1.ResolveResponse:
-        return self.naming_service.resolve(name, version=version, metadata=metadata)
+    ) -> identity_v1.ResolveResponse:
+        return self.identity_service.resolve(name, version=version, metadata=metadata)
 
     def get_verification_info(
         self,
@@ -263,8 +263,8 @@ class Client:
         name: str | None = None,
         version: str | None = None,
         metadata: Sequence[tuple[str, str]] | None = None,
-    ) -> naming_v1.GetVerificationInfoResponse:
-        return self.naming_service.get_verification_info(
+    ) -> identity_v1.GetVerificationInfoResponse:
+        return self.identity_service.get_verification_info(
             cid=cid,
             name=name,
             version=version,
