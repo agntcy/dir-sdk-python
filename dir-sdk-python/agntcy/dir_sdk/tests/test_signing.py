@@ -20,12 +20,14 @@ from typing import Any
 
 from agntcy.dir_sdk.client.services.store import StoreService
 from agntcy.dir_sdk.client.signing import ed25519ph, keys, oidc, referrer
+from agntcy.dir_sdk.client.signing import verify as verify_mod
 from agntcy.dir_sdk.client.signing.sign import sign_blob_with_key, sign_record
 from agntcy.dir_sdk.client.signing.verify import verify_record
 from agntcy.dir_sdk.models import core_v1, sign_v1, store_v1
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519, rsa
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa, x25519
+from cryptography.hazmat.primitives.asymmetric.utils import Prehashed
 from nacl.secret import SecretBox
 
 CID = "bafkreibtestcidforsigning"
@@ -828,6 +830,589 @@ class TestOIDC(unittest.TestCase):
             oidc.sign_blob_with_oidc(
                 CID.encode(), sign_v1.SignWithOIDC(id_token="not-a-jwt")
             )
+
+
+class TestKeysEdgeCases(unittest.TestCase):
+    @staticmethod
+    def _encrypted_pem(envelope: object | None = None, body: str | None = None) -> str:
+        if body is None:
+            body = base64.b64encode(json.dumps(envelope).encode()).decode()
+        return (
+            "-----BEGIN ENCRYPTED SIGSTORE PRIVATE KEY-----\n"
+            f"{body}\n"
+            "-----END ENCRYPTED SIGSTORE PRIVATE KEY-----\n"
+        )
+
+    def test_malformed_encrypted_keys(self) -> None:
+        good = {
+            "kdf": {
+                "name": "scrypt",
+                "params": {"N": 1024, "r": 8, "p": 1},
+                "salt": base64.b64encode(b"salt").decode(),
+            },
+            "cipher": {
+                "name": "nacl/secretbox",
+                "nonce": base64.b64encode(os.urandom(24)).decode(),
+            },
+            "ciphertext": base64.b64encode(b"garbage").decode(),
+        }
+        bad_kdf = {**good, "kdf": {**good["kdf"], "name": "argon2"}}  # type: ignore[dict-item]
+        bad_cipher = {**good, "cipher": {"name": "aes", "nonce": ""}}
+        missing = {k: v for k, v in good.items() if k != "ciphertext"}
+        cases = {
+            "unsupported KDF": self._encrypted_pem(bad_kdf),
+            "unsupported cipher": self._encrypted_pem(bad_cipher),
+            "invalid encrypted key format": self._encrypted_pem(missing),
+            "decrypt": self._encrypted_pem(good),
+            "invalid PEM body": self._encrypted_pem(body="abc"),
+        }
+        for expected, pem in cases.items():
+            with self.subTest(expected), self.assertRaises(keys.KeyLoadError) as ctx:
+                keys.load_private_key(pem, b"pw")
+            assert expected in str(ctx.exception)
+
+    def test_unsupported_key_types(self) -> None:
+        x25519_private = x25519.X25519PrivateKey.generate()
+        with self.assertRaises(keys.KeyLoadError):
+            keys.load_private_key(_pem_private(x25519_private))
+        x25519_public = x25519_private.public_key().public_bytes(
+            serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        with self.assertRaises(keys.KeyLoadError):
+            keys.load_public_key(x25519_public.decode())
+        assert keys.detect_key_algorithm(x25519_public.decode()) == "unknown"
+
+    def test_key_reference_errors(self) -> None:
+        with self.assertRaises(keys.KeyLoadError):
+            keys._read_key_ref("-----BEGIN nothing")
+        with self.assertRaises(keys.KeyLoadError):
+            keys.load_public_key("/definitely/not/a/key.pub")
+        with self.assertRaises(keys.KeyLoadError):
+            keys.load_public_key("-----BEGIN PUBLIC KEY-----\nbroken\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "garbage.pub"
+            path.write_text("not a key")
+            with self.assertRaises(keys.KeyLoadError):
+                keys.load_public_key(str(path))
+
+    def test_detect_key_algorithm_fallbacks(self) -> None:
+        assert keys.detect_key_algorithm("not pem") == "unknown"
+        k1 = ec.generate_private_key(ec.SECP256K1())
+        assert keys.detect_key_algorithm(keys.public_key_pem(k1)) == "ECDSA"
+        p384 = ec.generate_private_key(ec.SECP384R1())
+        assert keys.detect_key_algorithm(keys.public_key_pem(p384)) == "ECDSA-P-384"
+
+    def test_public_key_pem_accepts_public_keys(self) -> None:
+        key = ed25519.Ed25519PrivateKey.generate()
+        assert keys.public_key_pem(key.public_key()) == keys.public_key_pem(key)
+
+
+class TestEd25519phEdgeCases(unittest.TestCase):
+    def test_invalid_inputs_are_rejected(self) -> None:
+        seed = os.urandom(32)
+        pub = ed25519ph.public_key(seed)
+        sig = ed25519ph.sign(seed, b"msg")
+        assert ed25519ph.verify(pub, b"msg", sig)
+        assert not ed25519ph.verify(pub[:31], b"msg", sig)
+        assert not ed25519ph.verify(pub, b"msg", sig[:63])
+        # Public key / R with y >= p cannot be decompressed.
+        invalid_point = b"\xff" * 31 + b"\x7f"
+        assert not ed25519ph.verify(invalid_point, b"msg", sig)
+        assert not ed25519ph.verify(pub, b"msg", invalid_point + sig[32:])
+        # Non-canonical scalar (s >= L).
+        big_s = ed25519ph._L.to_bytes(32, "little")
+        assert not ed25519ph.verify(pub, b"msg", sig[:32] + big_s)
+        with self.assertRaises(ValueError):
+            ed25519ph.sign(b"short", b"msg")
+
+    def test_recover_x_edge_cases(self) -> None:
+        assert ed25519ph._recover_x(1, 0) == 0
+        assert ed25519ph._recover_x(1, 1) is None
+        assert ed25519ph._recover_x(ed25519ph._P, 0) is None
+        # Roughly half of all y coordinates are not on the curve.
+        assert any(ed25519ph._recover_x(y, 0) is None for y in range(2, 40))
+        assert any(ed25519ph._recover_x(y, 0) is not None for y in range(2, 40))
+
+
+class ScriptedStore(FakeStore):
+    """FakeStore with injectable failures and extra referrer responses."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.extra: list[store_v1.PullReferrerResponse] = []
+        self.push_failures: list[int] = []
+        self.pull_error: Exception | None = None
+        self.lookup_error: Exception | None = None
+        self._push_calls = 0
+
+    def push_referrer(
+        self,
+        req: list[store_v1.PushReferrerRequest],
+        metadata: Sequence[tuple[str, str]] | None = None,
+    ) -> list[store_v1.PushReferrerResponse]:
+        self._push_calls += 1
+        if self._push_calls in self.push_failures:
+            msg = "push boom"
+            raise RuntimeError(msg)
+        return super().push_referrer(req, metadata)
+
+    def pull_referrer(
+        self,
+        req: list[store_v1.PullReferrerRequest],
+        metadata: Sequence[tuple[str, str]] | None = None,
+    ) -> list[store_v1.PullReferrerResponse]:
+        if self.pull_error is not None:
+            raise self.pull_error
+        return super().pull_referrer(req, metadata) + self.extra
+
+    def lookup(
+        self,
+        refs: list[core_v1.RecordRef],
+        metadata: Sequence[tuple[str, str]] | None = None,
+    ) -> list[core_v1.RecordMeta]:
+        if self.lookup_error is not None:
+            raise self.lookup_error
+        return super().lookup(refs, metadata)
+
+
+class TestSignVerifyEdgeCases(unittest.TestCase):
+    def test_push_failures_are_reported(self) -> None:
+        for failing_call, expected in ((1, "public key"), (2, "signature")):
+            store = ScriptedStore()
+            store.push_failures = [failing_call]
+            with self.subTest(expected), self.assertRaises(RuntimeError) as ctx:
+                sign_record(store, _key_sign_request(COSIGN_KEY, b"pw"))
+            assert f"failed to store {expected}" in str(ctx.exception)
+
+    def test_sign_with_oidc_provider(self) -> None:
+        store = ScriptedStore()
+        req = sign_v1.SignRequest(
+            record_ref=core_v1.RecordRef(cid=CID),
+            provider=sign_v1.SignRequestProvider(
+                oidc=sign_v1.SignWithOIDC(id_token="token")
+            ),
+        )
+        signature = sign_v1.Signature(signature="c2ln", content_bundle="{}")
+        with unittest.mock.patch.object(
+            oidc,
+            "sign_blob_with_oidc",
+            return_value=(signature, sign_v1.PublicKey(key="pem")),
+        ) as signer:
+            sign_record(store, req)
+        signer.assert_called_once()
+        assert len(store.pushed) == 2
+
+        with (
+            unittest.mock.patch.object(
+                oidc, "sign_blob_with_oidc", side_effect=oidc.OIDCError("nope")
+            ),
+            self.assertRaises(RuntimeError) as ctx,
+        ):
+            sign_record(ScriptedStore(), req)
+        assert "failed to sign record" in str(ctx.exception)
+
+    def test_unusable_referrers_are_skipped(self) -> None:
+        store = ScriptedStore()
+        sign_record(store, _key_sign_request(COSIGN_KEY, b"pw"))
+        store.extra = [
+            store_v1.PullReferrerResponse(),  # no referrer set
+            store_v1.PullReferrerResponse(
+                referrer=core_v1.RecordReferrer(
+                    type="x", data={"signature": [1], "key": [1]}
+                )
+            ),
+        ]
+        ref = core_v1.RecordRef(cid=CID)
+        assert len(verify_mod.pull_signatures(store, ref)) == 1
+        assert verify_mod.pull_public_keys(store, ref) == [COSIGN_PUB]
+        response = verify_record(store, sign_v1.VerifyRequest(record_ref=ref))
+        assert response.success
+
+    def test_lookup_errors(self) -> None:
+        req = sign_v1.VerifyRequest(record_ref=core_v1.RecordRef(cid=CID))
+
+        class GrpcLikeError(Exception):
+            def details(self) -> str:
+                return "record not found in store"
+
+        store = ScriptedStore()
+        store.lookup_error = GrpcLikeError()
+        response = verify_record(store, req)
+        assert response.error_message == "record not found"
+
+        store.lookup_error = ConnectionError("down")
+        with self.assertRaises(RuntimeError) as ctx:
+            verify_record(store, req)
+        assert "failed to lookup record" in str(ctx.exception)
+
+    def test_pull_failures(self) -> None:
+        store = ScriptedStore()
+        store.pull_error = ConnectionError("down")
+        req = sign_v1.VerifyRequest(record_ref=core_v1.RecordRef(cid=CID))
+        with self.assertRaises(RuntimeError) as ctx:
+            verify_record(store, req)
+        assert "pull signatures" in str(ctx.exception)
+
+        # Signatures succeed but the public key lookup fails.
+        signed = ScriptedStore()
+        sign_record(signed, _key_sign_request(COSIGN_KEY, b"pw"))
+        original = signed.pull_referrer
+
+        def flaky(
+            req: list[store_v1.PullReferrerRequest],
+            metadata: Sequence[tuple[str, str]] | None = None,
+        ) -> list[store_v1.PullReferrerResponse]:
+            if req[0].referrer_type == referrer.PUBLIC_KEY_REFERRER_TYPE:
+                msg = "keys down"
+                raise ConnectionError(msg)
+            return original(req, metadata)
+
+        signed.pull_referrer = flaky  # type: ignore[method-assign]
+        with self.assertRaises(RuntimeError) as ctx:
+            verify_record(signed, req)
+        assert "pull public keys" in str(ctx.exception)
+
+    def test_verify_with_fetcher_requires_cid(self) -> None:
+        with self.assertRaises(ValueError):
+            verify_mod.verify_with_fetcher(ScriptedStore(), sign_v1.VerifyRequest())
+
+    def test_verify_with_keys_edge_cases(self) -> None:
+        raw = base64.b64decode(COSIGN_BLOB_SIGNATURE)
+        payload = b"bafytestcid"
+        good = sign_v1.Signature(signature=COSIGN_BLOB_SIGNATURE)
+        # Unloadable keys are skipped; the next key still verifies.
+        info = verify_mod._verify_with_keys(payload, ["not a key", COSIGN_PUB], good)
+        assert info.key.public_key == COSIGN_PUB
+        # A signature that is not base64 is treated as raw bytes and rejected.
+        with self.assertRaises(ValueError):
+            verify_mod._verify_with_keys(
+                payload, [COSIGN_PUB], sign_v1.Signature(signature="@@not-base64@@")
+            )
+        assert len(raw) > 0
+
+    def test_verify_with_any_errors(self) -> None:
+        options = sign_v1.VerifyOptionsOIDC()
+        no_key = sign_v1.Signature(signature=COSIGN_BLOB_SIGNATURE)
+        with self.assertRaises(ValueError) as ctx:
+            verify_mod._verify_with_any(b"other", [COSIGN_PUB], no_key, options)
+        assert "failed to verify signature with keys" in str(ctx.exception)
+
+        bundled = sign_v1.Signature(signature="c2ln", content_bundle="not json")
+        with self.assertRaises(ValueError) as ctx:
+            verify_mod._verify_with_any(b"x", [], bundled, options)
+        assert "failed to verify signature with OIDC" in str(ctx.exception)
+
+    def test_signer_key(self) -> None:
+        assert verify_mod._signer_key(sign_v1.SignerInfo()) == ""
+        key_signer = sign_v1.SignerInfo(key=sign_v1.SignerInfoKey(public_key="k"))
+        oidc_signer = sign_v1.SignerInfo(oidc=sign_v1.SignerInfoOIDC(issuer="i"))
+        assert verify_mod._signer_key(key_signer).startswith("key:")
+        assert verify_mod._signer_key(oidc_signer).startswith("oidc:")
+
+
+class _Certs:
+    """Helpers building small throwaway certificates."""
+
+    @staticmethod
+    def build(
+        extensions: Sequence[tuple[x509.ExtensionType, bool]] = (),
+        key: object | None = None,
+    ) -> x509.Certificate:
+        key = key or ec.generate_private_key(ec.SECP256R1())
+        now = datetime.now(timezone.utc)
+        builder = (
+            x509.CertificateBuilder()
+            .subject_name(x509.Name([]))
+            .issuer_name(
+                x509.Name([x509.NameAttribute(x509.oid.NameOID.COMMON_NAME, "ca")])
+            )
+            .public_key(key.public_key())  # type: ignore[attr-defined]
+            .serial_number(1)
+            .not_valid_before(now)
+            .not_valid_after(now + timedelta(minutes=10))
+        )
+        for extension, critical in extensions:
+            builder = builder.add_extension(extension, critical)
+        algorithm = (
+            None if isinstance(key, ed25519.Ed25519PrivateKey) else hashes.SHA256()
+        )
+        return builder.sign(key, algorithm)  # type: ignore[arg-type]
+
+
+class TestOIDCEdgeCases(unittest.TestCase):
+    def test_der_utf8_string(self) -> None:
+        assert oidc._der_utf8_string(b"\x0c\x03abc") == "abc"
+        long_value = "a" * 200
+        encoded = b"\x0c\x81" + bytes([200]) + long_value.encode()
+        assert oidc._der_utf8_string(encoded) == long_value
+        for bad in (b"", b"\x04\x01a"):
+            with self.assertRaises(oidc.OIDCError):
+                oidc._der_utf8_string(bad)
+
+    def test_summarize_certificate_variants(self) -> None:
+        issuer_v1 = x509.UnrecognizedExtension(oidc._OID_ISSUER_V1, b"https://v1")
+        email = x509.SubjectAlternativeName([x509.RFC822Name("dev@example.com")])
+        summary = oidc._summarize_certificate(
+            _Certs.build([(issuer_v1, False), (email, True)])
+        )
+        assert (summary.issuer, summary.subject) == ("https://v1", "dev@example.com")
+
+        other = x509.SubjectAlternativeName(
+            [x509.OtherName(oidc._OID_OTHER_NAME_SAN, b"\x0c\x04user")]
+        )
+        summary = oidc._summarize_certificate(_Certs.build([(other, True)]))
+        assert summary.subject == "user"
+
+        unrelated = x509.SubjectAlternativeName([x509.DNSName("example.com")])
+        for extensions in ([], [(unrelated, True)]):
+            with self.assertRaises(oidc.OIDCError):
+                oidc._summarize_certificate(_Certs.build(extensions))
+
+    def test_matches(self) -> None:
+        assert oidc._matches("", ".*", "anything")
+        assert oidc._matches("exact", "", "exact")
+        assert not oidc._matches("exact", "", "different")
+        assert not oidc._matches("", "^a", "b")
+
+    def test_verify_signature_key_types(self) -> None:
+        digest = hashlib.sha256(b"payload").digest()
+        ec_key = ec.generate_private_key(ec.SECP256R1())
+        signature = ec_key.sign(digest, ec.ECDSA(Prehashed(hashes.SHA256())))
+        oidc._verify_signature(_Certs.build(key=ec_key), signature, digest)
+        with self.assertRaises(oidc.OIDCError):
+            oidc._verify_signature(_Certs.build(key=ec_key), signature, b"x" * 32)
+
+        rsa_key = rsa.generate_private_key(65537, 2048)
+        rsa_signature = rsa_key.sign(
+            digest, padding.PKCS1v15(), Prehashed(hashes.SHA256())
+        )
+        rsa_cert = _Certs.build(key=rsa_key)
+        oidc._verify_signature(rsa_cert, rsa_signature, digest)
+        with self.assertRaises(oidc.OIDCError):
+            oidc._verify_signature(rsa_cert, b"\x00" * 256, digest)
+
+        with self.assertRaises(oidc.OIDCError):
+            oidc._verify_signature(
+                _Certs.build(key=ed25519.Ed25519PrivateKey.generate()), b"", digest
+            )
+
+    def test_load_trusted_root_errors(self) -> None:
+        with self.assertRaises(oidc.OIDCError):
+            oidc._load_trusted_root(
+                sign_v1.VerifyOptionsOIDC(trusted_root_path="/no/such/root.json")
+            )
+        with (
+            unittest.mock.patch.object(
+                oidc, "TrustUpdater", side_effect=RuntimeError("offline")
+            ),
+            self.assertRaises(oidc.OIDCError) as ctx,
+        ):
+            oidc._load_trusted_root(sign_v1.VerifyOptionsOIDC())
+        assert "TUF" in str(ctx.exception)
+
+    def test_verify_signed_timestamp(self) -> None:
+        now = datetime.now(timezone.utc)
+
+        def authority(count: int, start: datetime, end: datetime | None) -> object:
+            return SimpleNamespace(
+                certificates=lambda allow_expired: [object()] * count,  # noqa: ARG005
+                validity_period_start=start,
+                validity_period_end=end,
+            )
+
+        class FakeBuilder:
+            fail = False
+
+            def tsa_certificate(self, _cert: object) -> FakeBuilder:
+                return self
+
+            def add_root_certificate(self, _cert: object) -> FakeBuilder:
+                return self
+
+            def add_intermediate_certificate(self, _cert: object) -> FakeBuilder:
+                return self
+
+            def build(self) -> FakeBuilder:
+                return self
+
+            def verify_message(self, _response: object, _message: bytes) -> None:
+                if FakeBuilder.fail:
+                    msg = "bad timestamp"
+                    raise oidc.Rfc3161VerificationError(msg)
+
+        response = SimpleNamespace(tst_info=SimpleNamespace(gen_time=now))
+        day = timedelta(days=1)
+
+        def run(*authorities: object) -> object:
+            root = SimpleNamespace(get_timestamp_authorities=lambda: list(authorities))
+            return oidc._verify_signed_timestamp(root, response, b"sig")  # type: ignore[arg-type]
+
+        with unittest.mock.patch.object(oidc, "VerifierBuilder", FakeBuilder):
+            FakeBuilder.fail = False
+            # Too few certificates, then a valid open-ended authority.
+            verified = run(authority(1, now - day, None), authority(3, now - day, None))
+            assert verified is not None
+            assert verified.source == "TimestampAuthority"  # type: ignore[attr-defined]
+            # Timestamp outside the authority's validity period.
+            assert run(authority(2, now - day, now - timedelta(hours=1))) is None
+            assert run(authority(2, now + day, None)) is None
+            # Verification failures move on to the next authority.
+            FakeBuilder.fail = True
+            assert run(authority(2, now - day, None)) is None
+
+    def test_identity_token_interactive_flow(self) -> None:
+        issuer = unittest.mock.MagicMock()
+        with unittest.mock.patch.object(oidc, "Issuer", return_value=issuer) as cls:
+            result = oidc._identity_token(
+                "",
+                sign_v1.SignOptionsOIDC(
+                    oidc_provider_url="https://idp.example",
+                    oidc_client_id="client",
+                    oidc_client_secret="secret",
+                ),
+            )
+        cls.assert_called_once_with("https://idp.example")
+        issuer.identity_token.assert_called_once_with(
+            client_id="client", client_secret="secret"
+        )
+        assert result is issuer.identity_token.return_value
+
+    def test_sign_with_rekor_entry(self) -> None:
+        ca_key, ca_cert = _make_ca()
+        requests: list[dict[str, Any]] = []
+
+        class FakeFulcio:
+            def __init__(self, _url: str) -> None:
+                self.signing_cert = self
+
+            def post(self, csr: x509.CertificateSigningRequest, _id: object) -> object:
+                public_key = csr.public_key()
+                assert isinstance(public_key, ec.EllipticCurvePublicKey)
+                return SimpleNamespace(
+                    cert=_issue_leaf(ca_key, ca_cert, public_key, "https://x/id")
+                )
+
+        class FakeTSA:
+            def __init__(self, _url: str) -> None: ...
+
+            def request_timestamp(self, _signature: bytes) -> object:
+                return SimpleNamespace(as_bytes=lambda: b"ts")
+
+        class FakeRekor:
+            def __init__(self, url: str) -> None:
+                requests.append({"url": url})
+
+            def _build_hashed_rekord_request(self, **kwargs: Any) -> str:  # noqa: ANN401
+                requests.append(kwargs)
+                return "request"
+
+            def create_entry(self, request: str) -> str:
+                return f"entry:{request}"
+
+        def from_parts(*parts: object) -> object:
+            requests.append({"parts": parts})
+            return SimpleNamespace(
+                to_json=lambda: '{"rekor": true}',
+                _inner=SimpleNamespace(media_type="application/vnd.test+json"),
+            )
+
+        with (
+            unittest.mock.patch.object(oidc, "FulcioClient", FakeFulcio),
+            unittest.mock.patch.object(oidc, "TimestampAuthorityClient", FakeTSA),
+            unittest.mock.patch.object(oidc, "RekorClient", FakeRekor),
+            unittest.mock.patch.object(oidc, "IdentityToken", lambda t, **_: t),
+            unittest.mock.patch.object(oidc.Bundle, "_from_parts", from_parts),
+        ):
+            signature, _ = oidc.sign_blob_with_oidc(
+                CID.encode(),
+                sign_v1.SignWithOIDC(
+                    id_token="token",
+                    options=sign_v1.SignOptionsOIDC(rekor_url="https://rekor.test"),
+                ),
+            )
+        assert requests[0] == {"url": "https://rekor.test"}
+        assert signature.content_bundle == '{"rekor": true}'
+        assert signature.content_type == "application/vnd.test+json"
+        assert requests[-1]["parts"][2] == "entry:request"
+
+    def test_verify_bundle_variants(self) -> None:
+        helper = TestOIDC("test_value_matcher")
+        relaxed: dict[str, Any] = {
+            "ignore_tlog": True,
+            "ignore_tsa": True,
+            "ignore_sct": True,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            signature, root_path = helper._synthetic_signature(tmp)
+            bundle = json.loads(signature.content_bundle)
+
+            def with_bundle(mutated: dict[str, Any]) -> sign_v1.Signature:
+                copy = sign_v1.Signature()
+                copy.CopyFrom(signature)
+                copy.content_bundle = json.dumps(mutated)
+                return copy
+
+            # Bundle without a message signature.
+            no_message = {k: v for k, v in bundle.items() if k != "messageSignature"}
+            with self.assertRaises(oidc.OIDCError):
+                helper._verify_synthetic(with_bundle(no_message), root_path, **relaxed)
+
+            # Bundle without any certificate.
+            no_cert = json.loads(signature.content_bundle)
+            no_cert["verificationMaterial"].pop("certificate")
+            with self.assertRaises(oidc.OIDCError):
+                helper._verify_synthetic(with_bundle(no_cert), root_path, **relaxed)
+
+            # Pre-v0.3 style certificate chain.
+            chain = json.loads(signature.content_bundle)
+            leaf = chain["verificationMaterial"].pop("certificate")
+            chain["verificationMaterial"]["x509CertificateChain"] = {
+                "certificates": [leaf]
+            }
+            info = helper._verify_synthetic(with_bundle(chain), root_path, **relaxed)
+            assert info.oidc.issuer == "https://issuer.example"
+
+            # A recorded digest that does not match the payload.
+            bad_digest = json.loads(signature.content_bundle)
+            bad_digest["messageSignature"]["messageDigest"]["digest"] = (
+                base64.b64encode(b"\x00" * 32).decode()
+            )
+            with self.assertRaises(oidc.OIDCError):
+                helper._verify_synthetic(with_bundle(bad_digest), root_path, **relaxed)
+
+            # A required transparency log entry that is missing.
+            with self.assertRaises(oidc.OIDCError) as ctx:
+                helper._verify_synthetic(
+                    signature, root_path, ignore_tsa=True, ignore_sct=True
+                )
+            assert "log inclusion" in str(ctx.exception)
+
+            # Without any usable time source nothing can be verified.
+            with self.assertRaises(oidc.OIDCError):
+                helper._verify_synthetic(
+                    signature,
+                    root_path,
+                    ignore_tsa=True,
+                    ignore_sct=True,
+                    ignore_tlog=False,
+                )
+
+    def test_verify_timestamps_and_sct_failures(self) -> None:
+        helper = TestOIDC("test_value_matcher")
+        with tempfile.TemporaryDirectory() as tmp:
+            signature, root_path = helper._synthetic_signature(tmp)
+            # With the log ignored, an SCT is still required and absent.
+            with self.assertRaises(oidc.OIDCError) as ctx:
+                helper._verify_synthetic(
+                    signature, root_path, ignore_tlog=True, ignore_tsa=True
+                )
+            assert "signed certificate timestamp" in str(ctx.exception)
+            # A timestamp is required and absent.
+            with self.assertRaises(oidc.OIDCError) as ctx:
+                helper._verify_synthetic(
+                    signature, root_path, ignore_tlog=True, ignore_sct=True
+                )
+            assert "timestamps" in str(ctx.exception)
 
 
 if __name__ == "__main__":
