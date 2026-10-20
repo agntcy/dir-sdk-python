@@ -975,6 +975,17 @@ class TestSignVerifyEdgeCases(unittest.TestCase):
                 sign_record(store, _key_sign_request(COSIGN_KEY, b"pw"))
             assert f"failed to store {expected}" in str(ctx.exception)
 
+    def test_sign_rejects_unknown_provider(self) -> None:
+        provider = SimpleNamespace(WhichOneof=lambda _name: "kms")
+        req = SimpleNamespace(
+            provider=provider,
+            record_ref=core_v1.RecordRef(cid=CID),
+            HasField=lambda _name: True,
+        )
+        with self.assertRaises(RuntimeError) as ctx:
+            sign_record(FakeStore(), req)  # type: ignore[arg-type]
+        assert "unsupported signature provider type: kms" in str(ctx.exception)
+
     def test_sign_with_oidc_provider(self) -> None:
         store = ScriptedStore()
         req = sign_v1.SignRequest(
@@ -1284,7 +1295,8 @@ class TestOIDCEdgeCases(unittest.TestCase):
                 )
 
         class FakeTSA:
-            def __init__(self, _url: str) -> None: ...
+            def __init__(self, url: str) -> None:
+                self.url = url
 
             def request_timestamp(self, _signature: bytes) -> object:
                 return SimpleNamespace(as_bytes=lambda: b"ts")
@@ -1387,6 +1399,143 @@ class TestOIDCEdgeCases(unittest.TestCase):
                     ignore_sct=True,
                     ignore_tlog=False,
                 )
+
+    def test_trusted_root_from_tuf(self) -> None:
+        updater = unittest.mock.MagicMock()
+        updater.get_trusted_root_path.return_value = "/tuf/trusted_root.json"
+        with (
+            unittest.mock.patch.object(
+                oidc, "TrustUpdater", return_value=updater
+            ) as updater_cls,
+            unittest.mock.patch.object(oidc.TrustedRoot, "from_file") as from_file,
+        ):
+            root = oidc._load_trusted_root(
+                sign_v1.VerifyOptionsOIDC(tuf_mirror_url="https://tuf.example")
+            )
+        updater_cls.assert_called_once_with("https://tuf.example")
+        from_file.assert_called_once_with("/tuf/trusted_root.json")
+        assert root is from_file.return_value
+
+    def test_verify_with_log_entry_checks(self) -> None:
+        helper = TestOIDC("test_value_matcher")
+        with tempfile.TemporaryDirectory() as tmp:
+            signature, root_path = helper._synthetic_signature(tmp)
+
+            def fake_bundle(kind: str, version: str) -> unittest.mock.MagicMock:
+                entry = SimpleNamespace(
+                    _verify=lambda _keyring: None,
+                    _inner=SimpleNamespace(
+                        kind_version=SimpleNamespace(kind=kind, version=version)
+                    ),
+                )
+                return unittest.mock.MagicMock(
+                    return_value=SimpleNamespace(log_entry=entry)
+                )
+
+            for kind, version, validator in (
+                ("hashedrekord", "0.0.2", "_validate_hashedrekord_v002_entry_body"),
+                ("hashedrekord", "0.0.1", "_validate_hashedrekord_v001_entry_body"),
+            ):
+                with (
+                    self.subTest(version),
+                    unittest.mock.patch.object(
+                        oidc, "Bundle", fake_bundle(kind, version)
+                    ),
+                    unittest.mock.patch.object(
+                        oidc.TrustedRoot, "rekor_keyring", return_value=None
+                    ),
+                    unittest.mock.patch.object(oidc, validator) as validate,
+                ):
+                    # The log entry is accepted; without any time source the
+                    # verification still fails closed.
+                    with self.assertRaises(oidc.OIDCError) as ctx:
+                        helper._verify_synthetic(
+                            signature, root_path, ignore_tsa=True, ignore_sct=True
+                        )
+                    validate.assert_called_once()
+                    assert "no valid observer timestamps" in str(ctx.exception)
+
+            with (
+                unittest.mock.patch.object(
+                    oidc, "Bundle", fake_bundle("intoto", "0.0.2")
+                ),
+                unittest.mock.patch.object(
+                    oidc.TrustedRoot, "rekor_keyring", return_value=None
+                ),
+                self.assertRaises(oidc.OIDCError) as ctx,
+            ):
+                helper._verify_synthetic(
+                    signature, root_path, ignore_tsa=True, ignore_sct=True
+                )
+            assert "expected entry type hashedrekord" in str(ctx.exception)
+
+    def test_verify_with_verified_timestamp(self) -> None:
+        helper = TestOIDC("test_value_matcher")
+        with tempfile.TemporaryDirectory() as tmp:
+            signature, root_path = helper._synthetic_signature(tmp)
+            bundle = json.loads(signature.content_bundle)
+            bundle["verificationMaterial"]["timestampVerificationData"] = {
+                "rfc3161Timestamps": [{"signedTimestamp": "AAAA"}]
+            }
+            signature.content_bundle = json.dumps(bundle)
+            verified = oidc._VerifiedTime(
+                "TimestampAuthority", datetime.now(timezone.utc)
+            )
+            with (
+                unittest.mock.patch.object(
+                    oidc,
+                    "TimestampVerificationData",
+                    return_value=SimpleNamespace(rfc3161_timestamps=[object()]),
+                ),
+                unittest.mock.patch.object(
+                    oidc, "_verify_signed_timestamp", return_value=verified
+                ),
+            ):
+                info = helper._verify_synthetic(
+                    signature, root_path, ignore_tlog=True, ignore_sct=True
+                )
+            assert info.oidc.issuer == "https://issuer.example"
+
+    def test_verify_dsse_bundle_has_no_message_signature(self) -> None:
+        helper = TestOIDC("test_value_matcher")
+        with tempfile.TemporaryDirectory() as tmp:
+            signature, root_path = helper._synthetic_signature(tmp)
+            bundle = json.loads(signature.content_bundle)
+            bundle.pop("messageSignature")
+            bundle["dsseEnvelope"] = {
+                "payload": "e30=",
+                "payloadType": "application/vnd.in-toto+json",
+                "signatures": [{"sig": "c2ln", "keyid": ""}],
+            }
+            signature.content_bundle = json.dumps(bundle)
+            with self.assertRaises(oidc.OIDCError) as ctx:
+                helper._verify_synthetic(
+                    signature,
+                    root_path,
+                    ignore_tlog=True,
+                    ignore_tsa=True,
+                    ignore_sct=True,
+                )
+            assert "no message signature" in str(ctx.exception)
+
+    def test_verify_bundle_without_certificate(self) -> None:
+        helper = TestOIDC("test_value_matcher")
+        with tempfile.TemporaryDirectory() as tmp:
+            signature, root_path = helper._synthetic_signature(tmp)
+            bundle = json.loads(signature.content_bundle)
+            material = bundle["verificationMaterial"]
+            material.pop("certificate")
+            material["publicKey"] = {"hint": "key"}
+            signature.content_bundle = json.dumps(bundle)
+            with self.assertRaises(oidc.OIDCError) as ctx:
+                helper._verify_synthetic(
+                    signature,
+                    root_path,
+                    ignore_tlog=True,
+                    ignore_tsa=True,
+                    ignore_sct=True,
+                )
+            assert "signing certificate" in str(ctx.exception)
 
     def test_verify_timestamps_and_sct_failures(self) -> None:
         helper = TestOIDC("test_value_matcher")
