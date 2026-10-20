@@ -8,8 +8,6 @@ vars:
   DIR_CHART_VERSION: '{{ .DIR_CHART_VERSION | default "v1.8.0" }}'
   # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
   DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.8.0" }}'
-  # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
-  DIRCTL_IMAGE_TAG: '{{ .DIRCTL_IMAGE_TAG | default "v1.8.0" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
   RENOVATE_VERSION: "44.141.0"
@@ -72,7 +70,6 @@ tasks:
       - defer: { task: test-env:delete }
       - task: test-env:create
       - |
-        export DIRCTL_IMAGE_TAG="{{ .DIRCTL_IMAGE_TAG }}"
         export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
 
         # Run SDK tests
@@ -91,7 +88,6 @@ tasks:
     deps:
       - task: deps:uv
       - task: deps:cosign
-      - task: deps:dir-ctl
     cmds:
       - "{{.UV_BIN}} sync --all-packages"
 
@@ -398,17 +394,6 @@ tasks:
       - chmod +x {{.BIN_DIR}}/cosign-{{.COSIGN_VERSION}}
     status:
       - test -x {{.COSIGN_BIN}}
-
-  deps:dir-ctl:
-    desc: Install dir-ctl
-    internal: true
-    run: once
-    vars:
-      DIRCTL_IMAGE_TAG: "{{ .DIRCTL_IMAGE_TAG }}"
-    preconditions:
-      - which docker
-    cmds:
-      - docker image pull ghcr.io/agntcy/dir-ctl:{{ .DIRCTL_IMAGE_TAG }}
 
   deps:renovate:
     desc: Install Renovate

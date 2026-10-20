@@ -3,6 +3,12 @@
 [agntcy/dir]: https://github.com/agntcy/dir
 [agntcy/dir-sdk-python]: https://github.com/agntcy/dir-sdk-python
 
+## Unreleased
+
+### Changed
+
+- **Breaking:** `client.sign` and `client.verify` now run natively in Python (cosign-compatible key signing, Sigstore keyless signing via the `sigstore` package, and local verification from the store referrers) instead of invoking `dirctl`. `Config.dirctl_path`, `Config.docker_config`, `DockerConfig` and the `DIRCTL_PATH`/`DIRCTL_IMAGE`/`DIRCTL_IMAGE_TAG` environment variables were removed.
+
 ## 1.8.0 (2026-10-16)
 
 ### Changed

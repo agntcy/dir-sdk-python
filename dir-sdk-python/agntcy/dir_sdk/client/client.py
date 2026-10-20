@@ -82,7 +82,7 @@ class Client:
         self.routing_service = RoutingService(self.routing_client, logger)
         self.publication_service = PublicationService(self.publication_client, logger)
         self.search_service = SearchService(self.search_client, logger)
-        self.sign_service = SignService(self.config, self.sign_client, logger)
+        self.sign_service = SignService(self.sign_client, self.store_service, logger)
         self.sync_service = SyncService(self.sync_client, logger)
         self.event_service = EventService(self.event_client, logger)
         self.identity_service = IdentityService(self.identity_client, logger)
