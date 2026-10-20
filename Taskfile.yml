@@ -35,6 +35,10 @@ vars:
   COSIGN_VERSION: "3.1.3"
   COSIGN_BIN: "{{ .BIN_DIR }}/cosign-{{.COSIGN_VERSION}}"
 
+  # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
+  DIRCTL_VERSION: '{{ .DIRCTL_VERSION | default "v1.8.0" }}'
+  DIRCTL_BIN: "{{ .BIN_DIR }}/dirctl-{{.DIRCTL_VERSION}}"
+
   KIND_CLUSTER_NAME: "sdk-py-test"
 
 tasks:
@@ -71,6 +75,7 @@ tasks:
       - task: test-env:create
       - |
         export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
+        export DIRCTL_PATH="$(printf "%s" "${DIRCTL_PATH:-{{ .DIRCTL_BIN }}}")"
 
         # Run SDK tests
         '{{ .UV_BIN }}' run pytest \
@@ -88,6 +93,7 @@ tasks:
     deps:
       - task: deps:uv
       - task: deps:cosign
+      - task: deps:dirctl
     cmds:
       - "{{.UV_BIN}} sync --all-packages"
 
@@ -389,11 +395,24 @@ tasks:
   deps:cosign:
     desc: Install sigstore cosign
     internal: true
+    deps:
+      - deps:bin-dir
     cmds:
       - curl -sfL https://github.com/sigstore/cosign/releases/download/v{{.COSIGN_VERSION}}/cosign-{{OS}}-{{ARCH}} -o {{.BIN_DIR}}/cosign-{{.COSIGN_VERSION}}
       - chmod +x {{.BIN_DIR}}/cosign-{{.COSIGN_VERSION}}
     status:
       - test -x {{.COSIGN_BIN}}
+
+  deps:dirctl:
+    desc: Install dirctl (only used by the SDK interoperability tests)
+    internal: true
+    deps:
+      - deps:bin-dir
+    cmds:
+      - curl -sfL https://github.com/agntcy/dir/releases/download/{{.DIRCTL_VERSION}}/dirctl-{{OS}}-{{ARCH}} -o {{.DIRCTL_BIN}}
+      - chmod +x {{.DIRCTL_BIN}}
+    status:
+      - test -x {{.DIRCTL_BIN}}
 
   deps:renovate:
     desc: Install Renovate
