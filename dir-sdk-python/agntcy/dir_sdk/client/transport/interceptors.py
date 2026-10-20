@@ -9,7 +9,6 @@ from collections.abc import Callable, Iterator
 
 import grpc
 from google.protobuf import message
-from spiffe import WorkloadApiClient
 
 UnaryContinuation = Callable[[grpc.ClientCallDetails, message.Message], grpc.Call]
 StreamContinuation = Callable[
@@ -40,6 +39,10 @@ class JWTAuthInterceptor(
     """Add SPIFFE JWT-SVID authorization metadata to outgoing requests."""
 
     def __init__(self, socket_path: str, audience: str) -> None:
+        # Imported lazily: importing spiffe emits a cryptography FFDH deprecation
+        # warning, which should only affect users of SPIFFE authentication.
+        from spiffe import WorkloadApiClient
+
         self._audience = audience
         self._workload_client = WorkloadApiClient(socket_path=socket_path)
 

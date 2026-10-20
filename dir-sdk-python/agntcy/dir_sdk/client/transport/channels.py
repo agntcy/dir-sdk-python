@@ -15,7 +15,6 @@ from agntcy.dir_sdk.client.transport.interceptors import (
     JWTAuthInterceptor,
 )
 from cryptography.hazmat.primitives import serialization
-from spiffe import WorkloadApiClient, X509Source
 
 
 def grpc_channel_options(config: Config) -> list[tuple[str, str]]:
@@ -50,6 +49,10 @@ def create_x509_channel(config: Config) -> grpc.Channel:
     if config.spiffe_socket_path == "":
         msg = "SPIFFE socket path is required for X.509 authentication"
         raise ValueError(msg)
+
+    # Imported lazily: importing spiffe emits a cryptography FFDH deprecation
+    # warning, which should only affect users of SPIFFE authentication.
+    from spiffe import WorkloadApiClient, X509Source
 
     workload_client = WorkloadApiClient(socket_path=config.spiffe_socket_path)
     x509_src = X509Source(
@@ -89,6 +92,10 @@ def create_jwt_channel(config: Config) -> grpc.Channel:
     if config.jwt_audience == "":
         msg = "JWT audience is required for JWT authentication"
         raise ValueError(msg)
+
+    # Imported lazily: importing spiffe emits a cryptography FFDH deprecation
+    # warning, which should only affect users of SPIFFE authentication.
+    from spiffe import WorkloadApiClient, X509Source
 
     workload_client = WorkloadApiClient(socket_path=config.spiffe_socket_path)
     x509_source = X509Source(

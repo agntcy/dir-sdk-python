@@ -74,7 +74,7 @@ tasks:
 
         # Run SDK tests
         '{{ .UV_BIN }}' run pytest \
-          --cov=agntcy.dir_sdk \
+          --cov=dir-sdk-python/agntcy/dir_sdk \
           --cov-report=xml:coverage.xml \
           --cov-report=term-missing
 

@@ -52,6 +52,9 @@ packages = ["dir-sdk-python/agntcy"]
 pythonpath = ["dir-sdk-python"]
 addopts = ["--import-mode=importlib"]
 
+[tool.coverage.run]
+omit = ["*/tests/*"]
+
 [tool.ruff.lint]
 extend-select = ["ANN", "ARG", "ASYNC", "B", "I", "N", "SIM"]
 
