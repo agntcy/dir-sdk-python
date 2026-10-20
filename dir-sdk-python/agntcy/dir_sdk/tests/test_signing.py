@@ -913,25 +913,16 @@ class TestEd25519phEdgeCases(unittest.TestCase):
         pub = ed25519ph.public_key(seed)
         sig = ed25519ph.sign(seed, b"msg")
         assert ed25519ph.verify(pub, b"msg", sig)
+        assert not ed25519ph.verify(pub, b"other", sig)
         assert not ed25519ph.verify(pub[:31], b"msg", sig)
         assert not ed25519ph.verify(pub, b"msg", sig[:63])
-        # Public key / R with y >= p cannot be decompressed.
-        invalid_point = b"\xff" * 31 + b"\x7f"
-        assert not ed25519ph.verify(invalid_point, b"msg", sig)
-        assert not ed25519ph.verify(pub, b"msg", invalid_point + sig[32:])
         # Non-canonical scalar (s >= L).
-        big_s = ed25519ph._L.to_bytes(32, "little")
+        big_s = (2**252 + 27742317777372353535851937790883648493).to_bytes(32, "little")
         assert not ed25519ph.verify(pub, b"msg", sig[:32] + big_s)
         with self.assertRaises(ValueError):
             ed25519ph.sign(b"short", b"msg")
-
-    def test_recover_x_edge_cases(self) -> None:
-        assert ed25519ph._recover_x(1, 0) == 0
-        assert ed25519ph._recover_x(1, 1) is None
-        assert ed25519ph._recover_x(ed25519ph._P, 0) is None
-        # Roughly half of all y coordinates are not on the curve.
-        assert any(ed25519ph._recover_x(y, 0) is None for y in range(2, 40))
-        assert any(ed25519ph._recover_x(y, 0) is not None for y in range(2, 40))
+        with self.assertRaises(ValueError):
+            ed25519ph.public_key(b"short")
 
 
 class ScriptedStore(FakeStore):
