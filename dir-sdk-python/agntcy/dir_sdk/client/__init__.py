@@ -4,5 +4,6 @@
 from agntcy.dir_sdk.client.auth.oauth_pkce import OAuthPkceError
 from agntcy.dir_sdk.client.client import Client
 from agntcy.dir_sdk.client.config import Config
+from agntcy.dir_sdk.client.runtime_client import RuntimeClient
 
-__all__ = ["Client", "Config", "OAuthPkceError"]
+__all__ = ["Client", "Config", "OAuthPkceError", "RuntimeClient"]

@@ -3,6 +3,12 @@
 [agntcy/dir]: https://github.com/agntcy/dir
 [agntcy/dir-sdk-python]: https://github.com/agntcy/dir-sdk-python
 
+## Unreleased
+
+### Added
+
+- `RuntimeClient` for the runtime discovery API (`agntcy.dir.runtime.v1.DiscoveryService`): `get_workload` and `list_workloads` (with all `ListWorkloadsRequest` filters). It connects to dir-runtime's own address, separately from `Client`, so Directory credentials are never sent to it. Models are exposed as `agntcy.dir_sdk.models.runtime_v1`.
+
 ## 1.8.1 (2026-10-21)
 
 ### Changed
