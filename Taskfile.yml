@@ -66,6 +66,16 @@ tasks:
     cmds:
       - task: test-env:deploy:cleanup
 
+  test:runtime:
+    desc: Run the runtime discovery E2E test against a local `dirctl daemon` and a labelled Docker container
+    deps:
+      - task: deps:dirctl
+      - task: deps:uv
+    preconditions:
+      - which docker
+    cmds:
+      - tests/runtime-e2e/run.sh "${DIRCTL_PATH:-{{ .DIRCTL_BIN }}}" '{{ .UV_BIN }}' run pytest dir-sdk-python/agntcy/dir_sdk/tests/test_runtime_e2e.py -v
+
   test:
     desc: Test python client SDK package
     deps:

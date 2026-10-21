@@ -1,0 +1,67 @@
+# Copyright AGNTCY Contributors (https://github.com/agntcy)
+# SPDX-License-Identifier: Apache-2.0
+
+# Minimal `dirctl daemon` configuration for the runtime discovery E2E test.
+# Everything except runtime discovery is switched off, and the ports differ
+# from the defaults so it can run next to a regular Directory node.
+# Only containers labelled `sdk.agntcy/discover` are discovered.
+
+server:
+  listen_address: "localhost:18888"
+  store:
+    provider: "oci"
+    oci:
+      local_dir: "store"
+      registry_address: "localhost:15555"
+      repository_name: "dir"
+      auth_config:
+        insecure: true
+  routing:
+    listen_address: "/ip4/127.0.0.1/tcp/18999"
+    key_path: "node.key"
+    datastore_dir: "routing"
+    gossipsub:
+      enabled: false
+  database:
+    type: "sqlite"
+    sqlite:
+      path: "dir.db"
+  publication:
+    scheduler_interval: 5m
+    worker_count: 1
+    worker_timeout: 30m
+  http_gateway:
+    enabled: false
+  policy:
+    validators: []
+reconciler:
+  regsync: {enabled: false}
+  metrics: {enabled: false}
+  indexer: {enabled: false}
+  signature: {enabled: false}
+  identity: {enabled: false}
+  scan: {enabled: false}
+  record_events: {enabled: false}
+  local_registry:
+    registry_address: "localhost:15555"
+    repository_name: "dir"
+    auth_config:
+      insecure: true
+  database:
+    type: "sqlite"
+    sqlite:
+      path: "dir.db"
+runtime:
+  enabled: true
+  adapter:
+    type: "docker"
+    docker:
+      host: "unix:///var/run/docker.sock"
+      label_key: "sdk.agntcy/discover"
+  resolver:
+    a2a:
+      enabled: true
+      label_key: "sdk.agntcy/agent-type"
+    oasf: {enabled: false}
+  store:
+    type: "sqlite"
