@@ -14,7 +14,7 @@ Create a branch for the new release:
 2. Update the dependencies if necessary:
    - [agntcy-dir-grpc-python](https://buf.build/agntcy/dir/sdks/v1.8.0%3Agrpc/python) (Buf SDK)
    - [agntcy-dir-protocolbuffers-python](https://buf.build/agntcy/dir/sdks/v1.8.0%3Aprotocolbuffers/python) (Buf SDK)
-   - `.github/workflows/ci.yaml` (dir & dir-ctl version)
+   - `.github/workflows/ci.yaml` (dir version)
 3. Add an entry to `CHANGELOG.md`
 
 ## 2. Create and push tags

@@ -13,7 +13,7 @@ on:
       dirctl_image_tag:
         required: false
         type: string
-        description: "Override the tag of the dir-ctl Docker image to use in the tests."
+        description: "Override the version (release tag) of dirctl used by the interoperability tests."
       sdk_ref:
         required: false
         type: string
@@ -70,7 +70,7 @@ jobs:
       - name: Test Python SDK
         env:
           DIR_CHART_VERSION: ${{ inputs.dir_chart_version }}
-          DIRCTL_IMAGE_TAG: ${{ inputs.dirctl_image_tag }}
+          DIRCTL_VERSION: ${{ inputs.dirctl_image_tag }}
         run: |
           task test
 

@@ -18,7 +18,7 @@ Source and issue tracker: [github.com/agntcy/dir-sdk-python](https://github.com/
 | **Naming** | `resolve`, `get_verification_info` |
 | **Sync** | `create_sync`, `get_sync`, `list_syncs`, `delete_sync` |
 | **Events** | `listen` (server-streaming) |
-| **Signing** | `sign` (local via `dirctl`), `verify` (remote gRPC) |
+| **Signing** | `sign` (native, cosign/Sigstore compatible), `verify` (local or `from_server` gRPC) |
 
 ## Installation
 
@@ -43,7 +43,6 @@ Requires [uv](https://github.com/astral-sh/uv).
 ```bash
 # Insecure (local development)
 export DIRECTORY_CLIENT_SERVER_ADDRESS="localhost:8888"
-export DIRCTL_PATH="/path/to/dirctl"
 
 # X.509 / SPIFFE
 export DIRECTORY_CLIENT_SERVER_ADDRESS="localhost:8888"
@@ -78,7 +77,6 @@ from agntcy.dir_sdk.client import Config, Client
 # Insecure (local development only)
 config = Config(
     server_address="localhost:8888",
-    dirctl_path="/usr/local/bin/dirctl",
 )
 client = Client(config)
 
@@ -99,30 +97,6 @@ config = Config(
 )
 client = Client(config)
 ```
-
-### Docker-based dirctl
-
-If you don't have `dirctl` installed locally you can run it via Docker by passing a
-`DockerConfig` instead of `dirctl_path`:
-
-```python
-from agntcy.dir_sdk.client import Config, Client
-from agntcy.dir_sdk.client.config import DockerConfig
-
-config = Config(
-    server_address="localhost:8888",
-    docker_config=DockerConfig(
-        dirctl_image="ghcr.io/agntcy/dir-ctl",
-        dirctl_image_tag="latest",
-    ),
-)
-client = Client(config)
-```
-
-!!! note
-
-    `dirctl_path` and `docker_config` are mutually exclusive. Setting both raises a
-    `ValueError`.
 
 ## OAuth 2.0 / OIDC bearer auth
 
@@ -235,14 +209,10 @@ client.unpublish(routing_v1.UnpublishRequest(cid=cid))
 from agntcy.dir_sdk.models import search_v1
 
 # Full-text / semantic record search
-results = client.search_records(
-    search_v1.SearchRecordsRequest(query="my-agent")
-)
+results = client.search_records(search_v1.SearchRecordsRequest(query="my-agent"))
 
 # CID-only search
-cids = client.search_cids(
-    search_v1.SearchCIDsRequest(query="my-agent")
-)
+cids = client.search_cids(search_v1.SearchCIDsRequest(query="my-agent"))
 ```
 
 ### Naming — resolve and verify
@@ -269,14 +239,36 @@ for event in stream:
 ### Signing and verification
 
 ```python
-from agntcy.dir_sdk.models import sign_v1
+from agntcy.dir_sdk.models import core_v1, sign_v1
 
-# Sign a record locally (requires dirctl binary)
-client.sign(sign_v1.SignRequest(cid=cid))
+ref = core_v1.RecordRef(cid=cid)
 
-# Verify a record signature via gRPC
-resp = client.verify(sign_v1.VerifyRequest(cid=cid))
-print(resp.valid)
+# Sign a record with a cosign-compatible private key (PEM content or key file path).
+# The signature and public key are stored as referrers of the record.
+client.sign(
+    sign_v1.SignRequest(
+        record_ref=ref,
+        provider=sign_v1.SignRequestProvider(
+            key=sign_v1.SignWithKey(private_key="cosign.key", password=b"secret")
+        ),
+    )
+)
+
+# Or sign keylessly with an OIDC identity token (Sigstore Fulcio/Rekor/TSA).
+client.sign(
+    sign_v1.SignRequest(
+        record_ref=ref,
+        provider=sign_v1.SignRequestProvider(oidc=sign_v1.SignWithOIDC(id_token=token)),
+    )
+)
+
+# Verify locally against the signatures stored with the record.
+# Without a provider, any signer is accepted (keys and OIDC bundles).
+resp = client.verify(sign_v1.VerifyRequest(record_ref=ref))
+print(resp.success, [s.WhichOneof("type") for s in resp.signers])
+
+# Or fetch the server's cached verification result.
+resp = client.verify(sign_v1.VerifyRequest(record_ref=ref, from_server=True))
 ```
 
 ## Error handling
@@ -310,7 +302,6 @@ Common status codes: `NOT_FOUND`, `ALREADY_EXISTS`, `UNAVAILABLE`, `PERMISSION_D
 
 - Python 3.10 or higher
 - [uv](https://github.com/astral-sh/uv) package manager
-- [dirctl](https://github.com/agntcy/dir/releases) CLI binary (signing operations only)
 - A running Directory server — see [Quickstart](dir-quickstart.md) or
   [Kubernetes Deployment](dir-deployment-kubernetes.md)
 

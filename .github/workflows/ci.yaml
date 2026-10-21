@@ -20,7 +20,7 @@ on:
       dirctl_image_tag:
         required: false
         type: string
-        description: "Override the tag of the dir-ctl Docker image to use in the tests."
+        description: "Override the version (release tag) of dirctl used by the interoperability tests."
 
 permissions:
   contents: read

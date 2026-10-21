@@ -42,7 +42,7 @@
         "(?m)^\\s*#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\s*\\r?\\n\\s*[A-Z0-9_]+:\\s+'\\{\\{\\s*\\.[A-Z0-9_]+\\s*\\|\\s*default\\s+\"(?<currentValue>[^\"]+)\"\\s*\\}\\}'\\s*$"
       ],
       "description": [
-        "Custom dependency manager for updating Directory chart, image and dirctl versions defined as Taskfile defaults."
+        "Custom dependency manager for updating Directory chart and image versions defined as Taskfile defaults."
       ]
     }
   ],
@@ -191,7 +191,7 @@
         "build"
       ],
       "description": [
-        "Group Directory chart, image and dirctl version bumps from Taskfile in a single PR."
+        "Group Directory chart and image version bumps from Taskfile in a single PR."
       ]
     },
     {
