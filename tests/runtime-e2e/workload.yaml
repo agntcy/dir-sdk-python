@@ -1,0 +1,18 @@
+# Copyright AGNTCY Contributors (https://github.com/agntcy)
+# SPDX-License-Identifier: Apache-2.0
+
+# Workload the runtime discovery E2E tests expect dir-runtime to discover:
+# dir-runtime's Kubernetes adapter picks up pods labelled org.agntcy/discover.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sdk-runtime-e2e
+  namespace: default
+  labels:
+    org.agntcy/discover: "true"
+spec:
+  containers:
+    - name: web
+      image: nginx:alpine
+      ports:
+        - containerPort: 80
