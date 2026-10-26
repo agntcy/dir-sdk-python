@@ -41,6 +41,12 @@ vars:
 
   KIND_CLUSTER_NAME: "sdk-py-test"
 
+  # dir-runtime serves the runtime discovery API (agntcy.dir.runtime.v1) on its own address.
+  # renovate: datasource=github-releases depName=agntcy/dir-runtime versioning=semver
+  RUNTIME_VERSION: '{{ .RUNTIME_VERSION | default "v1.5.0" }}'
+  RUNTIME_API_HOSTPORT: '{{ .RUNTIME_API_HOSTPORT | default "18888" }}'
+  RUNTIME_API_NODEPORT: '{{ .RUNTIME_API_NODEPORT | default "30180" }}'
+
 tasks:
   # ---------------------------------------------------------------------------
   # SDK tasks (top-level, user-facing)
@@ -76,6 +82,8 @@ tasks:
       - |
         export COSIGN_PATH="$(printf "%s" "${COSIGN_PATH:-{{ .COSIGN_BIN }}}")"
         export DIRCTL_PATH="$(printf "%s" "${DIRCTL_PATH:-{{ .DIRCTL_BIN }}}")"
+        export DIRECTORY_RUNTIME_ADDRESS="localhost:{{ .RUNTIME_API_HOSTPORT }}"
+        export RUNTIME_E2E_WORKLOAD_NAME="sdk-runtime-e2e"
 
         # Run SDK tests
         '{{ .UV_BIN }}' run pytest \
@@ -210,7 +218,7 @@ tasks:
     deps:
       - task: test-env:setup-cluster
         vars:
-          KIND_EXTRA_PORT_MAPPING: "{{.API_HOSTPORT}}:{{.API_NODEPORT}},{{.METRICS_HOSTPORT}}:{{.METRICS_NODEPORT}}"
+          KIND_EXTRA_PORT_MAPPING: "{{.API_HOSTPORT}}:{{.API_NODEPORT}},{{.METRICS_HOSTPORT}}:{{.METRICS_NODEPORT}},{{.RUNTIME_API_HOSTPORT}}:{{.RUNTIME_API_NODEPORT}}"
     vars:
       # Kind args
       KIND_CLUSTER_NAME: '{{ .KIND_CLUSTER_NAME | default "sdk-py-test" }}'
@@ -269,6 +277,49 @@ tasks:
           --wait \
           --wait-for-jobs \
           --timeout "15m"
+
+      # Deploy dir-runtime and the workload it discovers
+      - task: test-env:runtime:deploy
+
+  test-env:runtime:deploy:
+    desc: Deploy dir-runtime and a labelled workload for the runtime discovery E2E tests
+    deps:
+      - deps:helm
+      - deps:kubectl
+      - deps:kind
+    vars:
+      KIND_CLUSTER_NAME: '{{ .KIND_CLUSTER_NAME | default "sdk-py-test" }}'
+    preconditions:
+      - which docker
+      - which curl
+    cmds:
+      - |
+        set -euo pipefail
+        SRC="$(mktemp -d)"
+        trap 'rm -rf "$SRC"' EXIT
+        curl -sfL "https://github.com/agntcy/dir-runtime/archive/refs/tags/{{ .RUNTIME_VERSION }}.tar.gz" | tar -xz -C "$SRC" --strip-components=1
+
+        # The published dir-runtime-server image contains the discovery binary
+        # (same digest as dir-runtime-discovery), so build the server from source.
+        docker build -q -f "$SRC/server/Dockerfile" --target production -t dir-runtime-server:sdk-e2e "$SRC"
+        {{ .KIND_BIN }} load docker-image dir-runtime-server:sdk-e2e --name {{ .KIND_CLUSTER_NAME }}
+
+        {{ .HELM_BIN }} install runtime "$SRC/install/chart" \
+          --namespace dir-runtime \
+          --create-namespace \
+          --set discovery.image.tag="{{ trimPrefix "v" .RUNTIME_VERSION }}" \
+          --set server.image.repository=dir-runtime-server \
+          --set server.image.tag=sdk-e2e \
+          --set server.image.pullPolicy=Never \
+          --set discovery.config.store.crd.namespace=dir-runtime \
+          --set server.config.store.crd.namespace=dir-runtime \
+          --set server.service.type=NodePort \
+          --set server.service.nodePort="{{ .RUNTIME_API_NODEPORT }}" \
+          --wait \
+          --timeout "5m"
+
+        {{ .KUBECTL_BIN }} apply -f "{{ .ROOT_DIR }}/tests/runtime-e2e/workload.yaml"
+        {{ .KUBECTL_BIN }} wait --for=condition=Ready pod/sdk-runtime-e2e --timeout=2m
 
   test-env:deploy:cleanup:
     desc: Cleanup Kubernetes environment for local deployment
