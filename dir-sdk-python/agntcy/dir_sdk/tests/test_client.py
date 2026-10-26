@@ -104,7 +104,7 @@ class TestClient(unittest.TestCase):
 
         search_query = search_v1.RecordQuery(
             type=search_v1.RECORD_QUERY_TYPE_SKILL_ID,
-            value="10201",
+            value="10301",
         )
 
         search_request = search_v1.SearchCIDsRequest(queries=[search_query], limit=2)
@@ -123,15 +123,15 @@ class TestClient(unittest.TestCase):
                 data={
                     "name": f"agntcy-annotation-{uuid.uuid4().hex[:8]}",
                     "version": "v3.0.0",
-                    "schema_version": "0.8.0",
+                    "schema_version": "1.1.0",
                     "description": "Record with custom annotations.",
                     "authors": ["AGNTCY"],
                     "created_at": "2025-03-19T17:06:37Z",
                     "annotations": {"key": "value"},
                     "skills": [
                         {
-                            "name": "natural_language_processing/natural_language_generation/text_completion",
-                            "id": 10201,
+                            "name": "language_processing/language_generation/text_completion",
+                            "id": 10301,
                         }
                     ],
                     "locators": [],
@@ -560,31 +560,31 @@ class TestClient(unittest.TestCase):
     def gen_records(self, count: int, test_function_name: str) -> list[core_v1.Record]:
         """
         Generate test records with unique names.
-        Schema: https://schema.oasf.outshift.com/0.7.0/objects/record
+        Schema: https://schema.oasf.outshift.com/1.1.0/objects/record
         """
         records: list[core_v1.Record] = [
             core_v1.Record(
                 data={
                     "name": f"agntcy-{test_function_name}-{index}-{str(uuid.uuid4())[:8]}",
                     "version": "v3.0.0",
-                    "schema_version": "0.7.0",
+                    "schema_version": "1.1.0",
                     "description": "Research agent for Cisco's marketing strategy.",
                     "authors": ["Cisco Systems"],
                     "created_at": "2025-03-19T17:06:37Z",
                     "skills": [
                         {
-                            "name": "natural_language_processing/natural_language_generation/text_completion",
-                            "id": 10201,
+                            "name": "language_processing/language_generation/text_completion",
+                            "id": 10301,
                         },
                         {
-                            "name": "natural_language_processing/analytical_reasoning/problem_solving",
-                            "id": 10702,
+                            "name": "reasoning_planning/logical_reasoning/problem_solving",
+                            "id": 150102,
                         },
                     ],
                     "locators": [
                         {
-                            "type": "docker_image",
-                            "url": "https://ghcr.io/agntcy/marketing-strategy",
+                            "type": "container_image",
+                            "urls": ["https://ghcr.io/agntcy/marketing-strategy"],
                         }
                     ],
                     "domains": [{"name": "technology/networking", "id": 103}],
