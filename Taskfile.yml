@@ -15,7 +15,7 @@ vars:
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
 
   # renovate: datasource=github-tags depName=helm/helm versioning=semver
-  HELM_VERSION: "4.3.0"
+  HELM_VERSION: "4.3.1"
   HELM_BIN: "{{ .BIN_DIR }}/helm-{{.HELM_VERSION}}"
 
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
@@ -27,12 +27,12 @@ vars:
   KIND_BIN: "{{ .BIN_DIR }}/kind-{{.KIND_VERSION}}"
 
   # renovate: datasource=github-releases depName=astral-sh/uv versioning=semver
-  UV_VERSION: "0.12.23"
+  UV_VERSION: "0.13.5"
   UV_BIN: "{{ .BIN_DIR }}/uv-{{.UV_VERSION}}"
   UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN | default "" }}'
 
   # renovate: datasource=github-releases depName=sigstore/cosign versioning=semver
-  COSIGN_VERSION: "3.1.3"
+  COSIGN_VERSION: "3.1.4"
   COSIGN_BIN: "{{ .BIN_DIR }}/cosign-{{.COSIGN_VERSION}}"
 
   # renovate: datasource=github-releases depName=agntcy/dir versioning=semver
