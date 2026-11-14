@@ -10,7 +10,7 @@ vars:
   DIR_IMAGE_TAG: '{{ .DIR_IMAGE_TAG | default "v1.8.0" }}'
 
   # renovate: datasource=github-releases depName=renovatebot/renovate versioning=semver
-  RENOVATE_VERSION: "44.198.0"
+  RENOVATE_VERSION: "44.222.0"
 
   BIN_DIR: "{{ .ROOT_DIR }}/.bin"
 
@@ -19,7 +19,7 @@ vars:
   HELM_BIN: "{{ .BIN_DIR }}/helm-{{.HELM_VERSION}}"
 
   # renovate: datasource=github-releases depName=kubernetes/kubernetes versioning=semver
-  KUBECTL_VERSION: "1.37.1"
+  KUBECTL_VERSION: "1.37.2"
   KUBECTL_BIN: "{{ .BIN_DIR }}/kubectl-{{.KUBECTL_VERSION}}"
 
   # renovate: datasource=go depName=sigs.k8s.io/kind versioning=semver
@@ -27,7 +27,7 @@ vars:
   KIND_BIN: "{{ .BIN_DIR }}/kind-{{.KIND_VERSION}}"
 
   # renovate: datasource=github-releases depName=astral-sh/uv versioning=semver
-  UV_VERSION: "0.13.5"
+  UV_VERSION: "0.13.7"
   UV_BIN: "{{ .BIN_DIR }}/uv-{{.UV_VERSION}}"
   UV_PUBLISH_TOKEN: '{{ .UV_PUBLISH_TOKEN | default "" }}'
 
