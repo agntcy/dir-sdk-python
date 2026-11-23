@@ -1379,14 +1379,14 @@ wheels = [
 
 [[package]]
 name = "pyjwt"
-version = "2.13.0"
+version = "2.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3b/81/58d0ac84e1ef3a3843791d6954d94c0b33d526c75eeb1efbce9d0a4c4077/pyjwt-2.13.0.tar.gz", hash = "sha256:41571c89ca91598c79e8ef18a2d07367d4810fbbd6f637794879baf1b7703423", size = 107515, upload-time = "2026-05-21T19:54:36.618Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/a5/5197bfd06417837ac079921c66fa6393f1dea3557272a263cebfef69e432/pyjwt-2.15.0.tar.gz", hash = "sha256:b11c5f9791d7bf51c2b39a81ed669f6b2dbbd669df2942f6c60167e9e3d1abe4", size = 120513, upload-time = "2026-09-23T16:56:00.689Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/5e/ecf12fdb62546d64385c158514e9b2b671f7832108ef2ecd2020ce0af2d1/pyjwt-2.13.0-py3-none-any.whl", hash = "sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728", size = 31274, upload-time = "2026-05-21T19:54:35.362Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/55/40e45bf052ee8ee12a4dfd785519660f8effa7b065442b91646ec6828619/pyjwt-2.15.0-py3-none-any.whl", hash = "sha256:7a3742debf6b879e912dbb9819ceec1594be812452b78c5f2e2dfc56564954f8", size = 33680, upload-time = "2026-09-23T16:55:59.241Z" },
 ]
 
 [package.optional-dependencies]
@@ -1622,7 +1622,7 @@ wheels = [
 
 [[package]]
 name = "spiffe"
-version = "0.3.0"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
@@ -1633,23 +1633,23 @@ dependencies = [
     { name = "pyasn1-modules" },
     { name = "pyjwt", extra = ["crypto"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/de/cae9d72f760ebc8955382e5f177ad05c39cd2c4e61e78b3f01823f136daa/spiffe-0.3.0.tar.gz", hash = "sha256:b3626ddbb6c4af582f47795d25e4a12c91ede8f3420111b2048be86c3ed6a5b5", size = 40959, upload-time = "2026-06-15T15:21:59.39Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/eb/05f82d87b9f7f0b714c887768c4941595fd35cfcbb0a6ea5e0adceee011c/spiffe-0.4.0.tar.gz", hash = "sha256:47372f000c489e4f7d2b810fd33ee1ff1e574d327116996c11e93fa47831f2bd", size = 44687, upload-time = "2026-10-29T16:32:48.914Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/7a/a8493b3adb864e5e9d16683f77a0f9c8197cc9e97d61c4ce2c78d7a8cc78/spiffe-0.3.0-py3-none-any.whl", hash = "sha256:71f212e36e42ca02542a59df8955e323b2281a2cb9bb68f42e7e5ec1abfd868f", size = 59168, upload-time = "2026-06-15T15:21:58.495Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/69/98212b7564db9ad87acee5eb882ff0f5abddcb95739f9606834696f9eae3/spiffe-0.4.0-py3-none-any.whl", hash = "sha256:7eb153709314e0bff86975cb4f20b1da8d949360e1d630eeda1ac20d0524117c", size = 61791, upload-time = "2026-10-29T16:32:47.921Z" },
 ]
 
 [[package]]
 name = "spiffe-tls"
-version = "0.4.0"
+version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
     { name = "pyopenssl" },
     { name = "spiffe" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d2/c8/f1299b2242661f3d5a92a99664a7b8a0927b6bdebb52027ed2d654391b56/spiffe_tls-0.4.0.tar.gz", hash = "sha256:412e94a86b0229e70608ce12d1387c36484fa04c1037aec73dbf88003b95dffd", size = 21140, upload-time = "2026-06-15T15:24:08.104Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/05/b228494ec606317737d83ec7c97c45e9e1905234c4fff56f970dab867b01/spiffe_tls-0.4.1.tar.gz", hash = "sha256:dc2012f1fed6b73ddd5b7a4ccb7599b341f2863fcb85c9fd3a7340a43f189c13", size = 21163, upload-time = "2026-10-29T16:34:24.287Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/23/2935a70d09149c0b3ac79502ec71d6c666cf595227d3bcaa8791a2a4eb7d/spiffe_tls-0.4.0-py3-none-any.whl", hash = "sha256:83690269b099960c4cd979c98d37f2da706486908c01fabe8502d01938001142", size = 26952, upload-time = "2026-06-15T15:24:08.93Z" },
+    { url = "https://files.pythonhosted.org/packages/80/31/f2da2b201935b2c35b58b5c1b9981d1ce0ae3336a05fec1c20517f69a890/spiffe_tls-0.4.1-py3-none-any.whl", hash = "sha256:036a9bd9f1531a6bbebdadbe2b32191d31d7daf346e0d3713bc6ba96375f0722", size = 26955, upload-time = "2026-10-29T16:34:23.154Z" },
 ]
 
 [[package]]
