@@ -236,6 +236,35 @@ for event in stream:
     print(event)
 ```
 
+### Runtime discovery — find running workloads
+
+`RuntimeClient` talks to the runtime discovery API (`agntcy.dir.runtime.v1.DiscoveryService`) served
+by [dir-runtime](https://github.com/agntcy/dir-runtime) and `dirctl daemon`. It connects to
+dir-runtime's own address (`localhost:8888` by default), separately from `Client`, so Directory
+credentials are never sent to it.
+
+```python
+from agntcy.dir_sdk.client import RuntimeClient
+from agntcy.dir_sdk.models import runtime_v1
+
+client = RuntimeClient("localhost:8888")
+
+# List workloads, optionally filtered by labels, runtime types and locator protocols
+workloads = client.list_workloads(
+    runtime_v1.ListWorkloadsRequest(
+        labels={"org.agntcy/discover": "true"},
+        runtime_types=["kubernetes"],
+        locator_protocols=["tcp"],
+    )
+)
+for w in workloads:
+    print(w.id, w.name, [loc.url for loc in w.locators])
+
+# Get one workload by hostname or ID
+workload = client.get_workload(runtime_v1.GetWorkloadRequest(id=workloads[0].id))
+client.close()
+```
+
 ### Signing and verification
 
 ```python
