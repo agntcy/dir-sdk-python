@@ -27,8 +27,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agntcy-dir-grpc-python", specifier = "==1.83.1.3.20261015113725+c24aeb0a65d8", index = "https://buf.build/gen/python" },
-    { name = "agntcy-dir-protocolbuffers-python", specifier = "==36.1.0.1.20261015113725+c24aeb0a65d8", index = "https://buf.build/gen/python" },
+    { name = "agntcy-dir-grpc-python", specifier = "==1.83.1.3.20261125130446+e1660c353997", index = "https://buf.build/gen/python" },
+    { name = "agntcy-dir-protocolbuffers-python", specifier = "==36.1.0.1.20261125130446+e1660c353997", index = "https://buf.build/gen/python" },
     { name = "authlib", specifier = ">=1.6.9" },
     { name = "cryptography", specifier = ">=46.0.0" },
     { name = "grpcio", specifier = ">=1.78.0" },
@@ -53,7 +53,7 @@ dev = [
 
 [[package]]
 name = "agntcy-dir-grpc-python"
-version = "1.83.1.3.20261015113725+c24aeb0a65d8"
+version = "1.83.1.3.20261125130446+e1660c353997"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "agntcy-dir-protocolbuffers-python" },
@@ -62,7 +62,7 @@ dependencies = [
     { name = "grpcio" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/agntcy-dir-grpc-python/agntcy_dir_grpc_python-1.83.1.3.20261015113725+c24aeb0a65d8-py3-none-any.whl", upload-time = "2026-10-15T11:37:25Z" },
+    { url = "https://buf.build/gen/python/agntcy-dir-grpc-python/agntcy_dir_grpc_python-1.83.1.3.20261125130446+e1660c353997-py3-none-any.whl", upload-time = "2026-11-25T13:04:46Z" },
 ]
 
 [[package]]
@@ -81,7 +81,7 @@ wheels = [
 
 [[package]]
 name = "agntcy-dir-protocolbuffers-python"
-version = "36.1.0.1.20261015113725+c24aeb0a65d8"
+version = "36.1.0.1.20261125130446+e1660c353997"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "agntcy-dir-protocolbuffers-pyi" },
@@ -90,7 +90,7 @@ dependencies = [
     { name = "protobuf" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-python/agntcy_dir_protocolbuffers_python-36.1.0.1.20261015113725+c24aeb0a65d8-py3-none-any.whl", upload-time = "2026-10-15T11:37:25Z" },
+    { url = "https://buf.build/gen/python/agntcy-dir-protocolbuffers-python/agntcy_dir_protocolbuffers_python-36.1.0.1.20261125130446+e1660c353997-py3-none-any.whl", upload-time = "2026-11-25T13:04:46Z" },
 ]
 
 [[package]]
@@ -546,14 +546,14 @@ wheels = [
 
 [[package]]
 name = "googleapis-googleapis-grpc-python"
-version = "1.83.1.3.20260414192239+c17df5b2beca"
+version = "1.83.1.3.20261015202054+8ac61b9e5023"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "googleapis-googleapis-protocolbuffers-python" },
     { name = "grpcio" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/googleapis-googleapis-grpc-python/googleapis_googleapis_grpc_python-1.83.1.3.20260414192239+c17df5b2beca-py3-none-any.whl", upload-time = "2026-09-03T19:35:36Z" },
+    { url = "https://buf.build/gen/python/googleapis-googleapis-grpc-python/googleapis_googleapis_grpc_python-1.83.1.3.20261015202054+8ac61b9e5023-py3-none-any.whl", upload-time = "2026-10-15T20:20:54Z" },
 ]
 
 [[package]]
@@ -570,14 +570,14 @@ wheels = [
 
 [[package]]
 name = "googleapis-googleapis-protocolbuffers-python"
-version = "36.1.0.1.20260414192239+c17df5b2beca"
+version = "36.1.0.1.20261015202054+8ac61b9e5023"
 source = { registry = "https://buf.build/gen/python" }
 dependencies = [
     { name = "googleapis-googleapis-protocolbuffers-pyi" },
     { name = "protobuf" },
 ]
 wheels = [
-    { url = "https://buf.build/gen/python/googleapis-googleapis-protocolbuffers-python/googleapis_googleapis_protocolbuffers_python-36.1.0.1.20260414192239+c17df5b2beca-py3-none-any.whl", upload-time = "2026-09-01T18:58:55Z" },
+    { url = "https://buf.build/gen/python/googleapis-googleapis-protocolbuffers-python/googleapis_googleapis_protocolbuffers_python-36.1.0.1.20261015202054+8ac61b9e5023-py3-none-any.whl", upload-time = "2026-10-15T20:20:54Z" },
 ]
 
 [[package]]
